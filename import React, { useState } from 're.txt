@@ -1,0 +1,124 @@
+import React, { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface PersonnelEntry {
+name: string;
+department: string;
+role: string;
+entryTime: string;
+contactNumber: string;
+}
+
+const EntranceReportForm: React.FC = () => {
+const [entries, setEntries] = useState<PersonnelEntry[]>([]);
+const [currentEntry, setCurrentEntry] = useState<PersonnelEntry>({
+  name: '',
+  department: '',
+  role: '',
+  entryTime: new Date().toLocaleTimeString(),
+  contactNumber: ''
+});
+
+const handleInputChange = (field: keyof PersonnelEntry, value: string) => {
+  setCurrentEntry(prev => ({
+    ...prev,
+    [field]: value
+  }));
+};
+
+const addEntry = () => {
+  if (currentEntry.name && currentEntry.department) {
+    setEntries([...entries, currentEntry]);
+    setCurrentEntry({
+      name: '',
+      department: '',
+      role: '',
+      entryTime: new Date().toLocaleTimeString(),
+      contactNumber: ''
+    });
+  }
+};
+
+return (
+  <div className="max-w-md mx-auto p-4 space-y-4">
+    <h2 className="text-xl font-bold mb-4">當天進場人員回報</h2>
+    
+    <div className="space-y-2">
+      <Label>姓名</Label>
+      <Input 
+        value={currentEntry.name}
+        onChange={(e) => handleInputChange('name', e.target.value)}
+        placeholder="請輸入姓名"
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>部門</Label>
+      <Input 
+        value={currentEntry.department}
+        onChange={(e) => handleInputChange('department', e.target.value)}
+        placeholder="請輸入部門"
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>角色</Label>
+      <Select 
+        value={currentEntry.role}
+        onValueChange={(value) => handleInputChange('role', value)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="選擇角色" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="staff">一般員工</SelectItem>
+          <SelectItem value="manager">管理階層</SelectItem>
+          <SelectItem value="visitor">訪客</SelectItem>
+          <SelectItem value="contractor">外包人員</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    <div className="space-y-2">
+      <Label>聯絡電話</Label>
+      <Input 
+        value={currentEntry.contactNumber}
+        onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+        placeholder="請輸入聯絡電話"
+        type="tel"
+      />
+    </div>
+
+    <div className="space-y-2">
+      <Label>進場時間</Label>
+      <Input 
+        value={currentEntry.entryTime}
+        readOnly
+      />
+    </div>
+
+    <Button onClick={addEntry} className="w-full">
+      新增進場人員
+    </Button>
+
+    {entries.length > 0 && (
+      <div>
+        <h3 className="text-lg font-semibold mt-4">今日進場人員名單</h3>
+        <div className="border rounded-md mt-2">
+          {entries.map((entry, index) => (
+            <div key={index} className="p-2 border-b last:border-b-0 grid grid-cols-2 gap-2">
+              <span>{entry.name}</span>
+              <span>{entry.department}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+};
+
+export default EntranceReportForm;
