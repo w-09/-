@@ -315,13 +315,8 @@
 
     // 格式化函數
     function formatCurrency(amount) {
-        return new Intl.NumberFormat('zh-TW', {
-            style: 'currency',
-            currency: 'TWD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(amount);
-    }
+    return new Intl.NumberFormat('zh-TW').format(amount);
+}
 
     function formatNumber(number) {
         return new Intl.NumberFormat('zh-TW').format(number);
@@ -901,3 +896,4 @@
 </script>
 </body>
 </html>
+
