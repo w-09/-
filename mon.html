@@ -340,70 +340,6 @@
             addLogEntry('❌ 系統初始化失敗: ' + error.message, 'error');
         }
     }
-
-    // 載入示例數據
-    function loadSampleData() {
-        projectData = [
-            {
-                name: '亞灣區開發案A',
-                actual: 15000000,
-                expense: 12000000,
-                planned: 14000000,
-                difference: 1000000,
-                netProfit: 3000000,
-                executionRate: 107.14,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案B',
-                actual: 8500000,
-                expense: 7200000,
-                planned: 9000000,
-                difference: -500000,
-                netProfit: 1300000,
-                executionRate: 94.44,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案C',
-                actual: 22000000,
-                expense: 18500000,
-                planned: 20000000,
-                difference: 2000000,
-                netProfit: 3500000,
-                executionRate: 110.00,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案D',
-                actual: 6800000,
-                expense: 7500000,
-                planned: 7500000,
-                difference: -700000,
-                netProfit: -700000,
-                executionRate: 90.67,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案E',
-                actual: 12300000,
-                expense: 9800000,
-                planned: 11000000,
-                difference: 1300000,
-                netProfit: 2500000,
-                executionRate: 111.82,
-                lastUpdate: new Date().toLocaleString()
-            }
-        ];
-        
-        updateChart();
-        updateTable();
-        updateSummaryCards();
-        updateLastUpdateTime();
-        
-        addLogEntry('✅ 示例數據載入完成', 'success');
-    }
-
     // 圖表初始化
     async function initCharts() {
         const chartOptions = {
@@ -899,6 +835,7 @@
 </script>
 </body>
 </html>
+
 
 
 
