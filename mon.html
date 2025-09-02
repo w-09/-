@@ -315,7 +315,10 @@
 
     // 格式化函數
     function formatCurrency(amount) {
-    return new Intl.NumberFormat('zh-TW').format(amount);
+    return new Intl.NumberFormat('zh-TW', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount) + ' 元';
 }
 
     function formatNumber(number) {
@@ -896,4 +899,5 @@
 </script>
 </body>
 </html>
+
 
