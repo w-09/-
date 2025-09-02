@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>收支管理系統 - 手動輸入版</title>
+  <title>收支管理系統 - Google Sheets 自動連動版</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
       body {
@@ -30,44 +30,112 @@
           font-size: 2.5em;
           font-weight: 300;
       }
-      .quick-guide {
+      .connection-status {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 20px;
+          margin: 20px 0;
+          border-radius: 0 10px 10px 0;
+      }
+      .connection-status.connected {
+          background: #d4edda;
+          border-left-color: #28a745;
+      }
+      .connection-status.error {
+          background: #f8d7da;
+          border-left-color: #dc3545;
+      }
+      .setup-section {
           background: #e8f5e9;
           border-left: 4px solid #4caf50;
           padding: 20px;
           margin: 20px 0;
           border-radius: 0 10px 10px 0;
       }
-      .quick-guide h3 {
+      .setup-section h3 {
           color: #2e7d32;
           margin-top: 0;
       }
-      .quick-guide ol {
+      .setup-section ol {
           margin: 10px 0;
           padding-left: 20px;
       }
-      .quick-guide li {
+      .setup-section li {
           margin: 8px 0;
       }
-      .data-source-links {
-          background: #f3e5f5;
-          padding: 15px;
-          border-radius: 10px;
-          margin: 20px 0;
-          text-align: center;
+      .config-section {
+          background: white;
+          padding: 30px;
+          border-radius: 15px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       }
-      .data-source-links a {
-          display: inline-block;
-          margin: 5px 10px;
-          padding: 10px 20px;
-          background: #9c27b0;
-          color: white;
-          text-decoration: none;
-          border-radius: 25px;
+      .config-section h2 {
+          color: #2c3e50;
+          margin-bottom: 20px;
+      }
+      .form-group {
+          margin-bottom: 20px;
+      }
+      .form-group label {
+          display: block;
+          font-weight: 600;
+          color: #495057;
+          margin-bottom: 8px;
+      }
+      .form-group input,
+      .form-group select {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          font-size: 14px;
+          transition: border-color 0.3s ease;
+          box-sizing: border-box;
+      }
+      .form-group input:focus,
+      .form-group select:focus {
+          outline: none;
+          border-color: #667eea;
+      }
+      .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+      }
+      .btn {
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
           transition: all 0.3s ease;
+          font-size: 14px;
       }
-      .data-source-links a:hover {
-          background: #7b1fa2;
+      .btn-primary {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+      }
+      .btn-primary:hover {
           transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+      .btn-success {
+          background: linear-gradient(135deg, #28a745, #20c997);
+          color: white;
+      }
+      .btn-danger {
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+      }
+      .btn-secondary {
+          background: #6c757d;
+          color: white;
+      }
+      .btn-group {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
       }
       .stats-grid {
           display: grid;
@@ -112,88 +180,6 @@
           margin: 0;
           color: #6c757d;
           font-weight: 500;
-      }
-      .input-section {
-          background: white;
-          padding: 30px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      }
-      .input-section h2 {
-          color: #2c3e50;
-          margin-bottom: 20px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-      }
-      .form-group {
-          margin-bottom: 20px;
-      }
-      .form-group label {
-          display: block;
-          font-weight: 600;
-          color: #495057;
-          margin-bottom: 8px;
-      }
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          font-size: 14px;
-          transition: border-color 0.3s ease;
-      }
-      .form-group input:focus,
-      .form-group select:focus,
-      .form-group textarea:focus {
-          outline: none;
-          border-color: #667eea;
-      }
-      .form-group textarea {
-          min-height: 100px;
-          resize: vertical;
-      }
-      .form-row {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-      }
-      .btn {
-          padding: 12px 24px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.3s ease;
-          font-size: 14px;
-      }
-      .btn-primary {
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          color: white;
-      }
-      .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-      }
-      .btn-success {
-          background: linear-gradient(135deg, #28a745, #20c997);
-          color: white;
-      }
-      .btn-danger {
-          background: linear-gradient(135deg, #dc3545, #c82333);
-          color: white;
-      }
-      .btn-secondary {
-          background: #6c757d;
-          color: white;
-      }
-      .btn-group {
-          display: flex;
-          gap: 10px;
-          margin-top: 20px;
       }
       .data-table {
           background: white;
@@ -248,23 +234,10 @@
       .amount.negative {
           color: #dc3545;
       }
-      .actions {
-          display: flex;
-          gap: 5px;
-      }
-      .btn-sm {
-          padding: 6px 12px;
-          font-size: 12px;
-      }
       .empty-state {
           text-align: center;
           padding: 40px;
           color: #6c757d;
-      }
-      .empty-state img {
-          width: 100px;
-          opacity: 0.5;
-          margin-bottom: 20px;
       }
       .chart-container {
           background: white;
@@ -315,78 +288,37 @@
       .tab-content.active {
           display: block;
       }
-      .import-section {
+      .loading {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border: 3px solid #f3f3f3;
+          border-top: 3px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+      }
+      .refresh-info {
           background: #e3f2fd;
-          padding: 20px;
+          padding: 15px;
           border-radius: 10px;
-          margin-bottom: 20px;
+          margin: 20px 0;
+          text-align: center;
       }
-      .import-section h4 {
-          color: #1976d2;
-          margin-top: 0;
+      .last-update {
+          color: #666;
+          font-size: 14px;
+          margin-top: 10px;
       }
-      .paste-area {
-          width: 100%;
-          min-height: 150px;
-          padding: 10px;
-          border: 2px dashed #90caf9;
-          border-radius: 8px;
-          font-family: monospace;
-          font-size: 12px;
-          background: white;
-      }
-      .paste-area:focus {
-          border-color: #1976d2;
-          outline: none;
-      }
-      .help-text {
-          font-size: 12px;
-          color: #6c757d;
-          margin-top: 5px;
-      }
-      .modal {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0,0,0,0.5);
-          z-index: 1000;
-          align-items: center;
-          justify-content: center;
-      }
-      .modal.active {
-          display: flex;
-      }
-      .modal-content {
-          background: white;
-          padding: 30px;
-          border-radius: 15px;
-          max-width: 500px;
-          width: 90%;
-          max-height: 80vh;
-          overflow-y: auto;
-      }
-      .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-      }
-      .modal-header h3 {
-          margin: 0;
-          color: #2c3e50;
-      }
-      .close-btn {
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #6c757d;
-      }
-      .close-btn:hover {
-          color: #2c3e50;
+      .url-converter {
+          background: #fff3e0;
+          padding: 15px;
+          border-radius: 10px;
+          margin: 15px 0;
+          font-size: 14px;
       }
       @media (max-width: 768px) {
           .form-row {
@@ -408,115 +340,69 @@
   <div class="container">
       <div class="header">
           <h1>💰 收支管理系統</h1>
-          <p>手動輸入與管理您的財務數據</p>
+          <p>Google Sheets 自動連動版</p>
       </div>
 
-      <div class="quick-guide">
-          <h3>📋 快速使用指南</h3>
-          <ol>
-              <li>從 Google Sheets 複製您的資料（選取資料 → Ctrl+C）</li>
-              <li>點擊「批次匯入」按鈕</li>
-              <li>將資料貼上到文字框中（Ctrl+V）</li>
-              <li>點擊「匯入資料」完成</li>
-              <li>或者使用「新增收入/支出」手動輸入單筆資料</li>
-          </ol>
+      <div id="connectionStatus" class="connection-status connected">
+          <h3>🔗 連線狀態</h3>
+          <p id="statusText">✅ 已自動設定您的 Google Sheets 連結</p>
+          <div class="last-update" id="lastUpdate"></div>
       </div>
 
-      <div class="data-source-links">
-          <strong>您的 Google Sheets 連結：</strong>
-          <a href="https://docs.google.com/spreadsheets/d/1jpcMCUcpveh7-doxSdHNP6wK5NuxsMvc3-A5Il42Enk/edit?gid=0#gid=0" 
-             target="_blank">📊 開啟收入表</a>
-          <a href="https://docs.google.com/spreadsheets/d/1r8WIQBv41Fz19onWPXcIekwMY-L-BZ36U1amh8LA_2U/edit?gid=0#gid=0" 
-             target="_blank">📊 開啟支出表</a>
-      </div>
-
-      <div class="stats-grid">
-          <div class="stat-card income">
-              <h3 id="totalIncome">NT$ 0</h3>
-              <p>💰 總收入</p>
-          </div>
-          <div class="stat-card expense">
-              <h3 id="totalExpense">NT$ 0</h3>
-              <p>💸 總支出</p>
-          </div>
-          <div class="stat-card balance">
-              <h3 id="netBalance">NT$ 0</h3>
-              <p>💎 淨餘額</p>
-          </div>
-          <div class="stat-card">
-              <h3 id="totalTransactions">0</h3>
-              <p>📊 總交易數</p>
-          </div>
+      <div class="setup-section">
+          <h3>📋 系統說明</h3>
+          <ul>
+              <li>系統已自動設定您提供的 Google Sheets 連結</li>
+              <li>資料會每 30 分鐘自動更新一次</li>
+              <li>您可以隨時點擊「手動更新」按鈕立即刷新資料</li>
+              <li>如需修改連結或更新頻率，請到「設定」分頁</li>
+          </ul>
       </div>
 
       <div class="tabs">
           <button class="tab active" onclick="switchTab('overview')">📊 總覽</button>
-          <button class="tab" onclick="switchTab('income')">💰 收入管理</button>
-          <button class="tab" onclick="switchTab('expense')">💸 支出管理</button>
-          <button class="tab" onclick="switchTab('import')">📥 批次匯入</button>
+          <button class="tab" onclick="switchTab('income')">💰 收入明細</button>
+          <button class="tab" onclick="switchTab('expense')">💸 支出明細</button>
+          <button class="tab" onclick="switchTab('setup')">⚙️ 設定</button>
       </div>
 
       <!-- 總覽頁面 -->
       <div class="tab-content active" id="overview">
+          <div class="stats-grid">
+              <div class="stat-card income">
+                  <h3 id="totalIncome">NT$ 0</h3>
+                  <p>💰 總收入</p>
+              </div>
+              <div class="stat-card expense">
+                  <h3 id="totalExpense">NT$ 0</h3>
+                  <p>💸 總支出</p>
+              </div>
+              <div class="stat-card balance">
+                  <h3 id="netBalance">NT$ 0</h3>
+                  <p>💎 淨餘額</p>
+              </div>
+              <div class="stat-card">
+                  <h3 id="totalTransactions">0</h3>
+                  <p>📊 總交易數</p>
+              </div>
+          </div>
+
           <div class="chart-container">
               <div class="chart-title">📊 收支對比圖表</div>
               <canvas id="overviewChart"></canvas>
           </div>
-          
-          <div class="data-table">
-              <div class="table-header">
-                  <h3>📋 最近交易記錄</h3>
-              </div>
-              <div class="table-wrapper">
-                  <table id="recentTransactionsTable">
-                      <thead>
-                          <tr>
-                              <th>日期</th>
-                              <th>類型</th>
-                              <th>項目</th>
-                              <th>金額</th>
-                              <th>備註</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <tr>
-                              <td colspan="5" class="empty-state">
-                                  <p>尚無交易記錄</p>
-                              </td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
+
+          <div class="refresh-info">
+              <button class="btn btn-success" onclick="refreshData()">
+                  <span id="refreshLoadingIcon"></span>
+                  🔄 手動更新資料
+              </button>
+              <p>下次自動更新：<span id="nextUpdateTime">-</span></p>
           </div>
       </div>
 
-      <!-- 收入管理頁面 -->
+      <!-- 收入明細頁面 -->
       <div class="tab-content" id="income">
-          <div class="input-section">
-              <h2>➕ 新增收入</h2>
-              <form id="incomeForm">
-                  <div class="form-row">
-                      <div class="form-group">
-                          <label>日期</label>
-                          <input type="date" name="date" required>
-                      </div>
-                      <div class="form-group">
-                          <label>收入來源</label>
-                          <input type="text" name="source" placeholder="例如：工程款第一期" required>
-                      </div>
-                      <div class="form-group">
-                          <label>金額</label>
-                          <input type="number" name="amount" placeholder="0" min="0" step="0.01" required>
-                      </div>
-                  </div>
-                  <div class="form-group">
-                      <label>備註</label>
-                      <textarea name="notes" placeholder="選填"></textarea>
-                  </div>
-                  <button type="submit" class="btn btn-success">💰 新增收入</button>
-              </form>
-          </div>
-
           <div class="data-table">
               <div class="table-header">
                   <h3>💰 收入明細</h3>
@@ -530,13 +416,13 @@
                               <th>收入來源</th>
                               <th>金額</th>
                               <th>備註</th>
-                              <th>操作</th>
                           </tr>
                       </thead>
                       <tbody>
                           <tr>
-                              <td colspan="5" class="empty-state">
-                                  <p>尚無收入記錄</p>
+                              <td colspan="4" class="empty-state">
+                                  <div class="loading"></div>
+                                  <p>正在載入收入資料...</p>
                               </td>
                           </tr>
                       </tbody>
@@ -545,39 +431,8 @@
           </div>
       </div>
 
-      <!-- 支出管理頁面 -->
+      <!-- 支出明細頁面 -->
       <div class="tab-content" id="expense">
-          <div class="input-section">
-              <h2>➕ 新增支出</h2>
-              <form id="expenseForm">
-                  <div class="form-row">
-                      <div class="form-group">
-                          <label>項次</label>
-                          <input type="text" name="itemNo" placeholder="例如：001">
-                      </div>
-                      <div class="form-group">
-                          <label>承包廠商</label>
-                          <input type="text" name="vendor" placeholder="例如：大成建設" required>
-                      </div>
-                      <div class="form-group">
-                          <label>承作項目</label>
-                          <input type="text" name="item" placeholder="例如：基礎工程" required>
-                      </div>
-                  </div>
-                  <div class="form-row">
-                      <div class="form-group">
-                          <label>發票金額</label>
-                          <input type="number" name="amount" placeholder="0" min="0" step="0.01" required>
-                      </div>
-                      <div class="form-group">
-                          <label>備註</label>
-                          <input type="text" name="notes" placeholder="選填">
-                      </div>
-                  </div>
-                  <button type="submit" class="btn btn-danger">💸 新增支出</button>
-              </form>
-          </div>
-
           <div class="data-table">
               <div class="table-header">
                   <h3>💸 支出明細</h3>
@@ -592,13 +447,13 @@
                               <th>承作項目</th>
                               <th>發票金額</th>
                               <th>備註</th>
-                              <th>操作</th>
                           </tr>
                       </thead>
                       <tbody>
                           <tr>
-                              <td colspan="6" class="empty-state">
-                                  <p>尚無支出記錄</p>
+                              <td colspan="5" class="empty-state">
+                                  <div class="loading"></div>
+                                  <p>正在載入支出資料...</p>
                               </td>
                           </tr>
                       </tbody>
@@ -607,64 +462,54 @@
           </div>
       </div>
 
-      <!-- 批次匯入頁面 -->
-      <div class="tab-content" id="import">
-          <div class="import-section">
-              <h4>📥 批次匯入收入資料</h4>
-              <p class="help-text">從 Google Sheets 複製資料，直接貼上即可（包含標題列）</p>
-              <textarea class="paste-area" id="incomeImportArea" 
-                  placeholder="貼上格式範例：
-日期	收入來源	金額	備註
-2024-01-15	工程款第一期	50000000	合約款項
-2024-02-20	政府補助	10000000	智慧建築補助"></textarea>
+      <!-- 設定頁面 -->
+      <div class="tab-content" id="setup">
+          <div class="config-section">
+              <h2>⚙️ Google Sheets 連結設定</h2>
+              <div class="url-converter">
+                  <strong>📝 連結轉換說明：</strong><br>
+                  系統已自動將您的 Google Sheets 公開連結轉換為 CSV 格式以便讀取資料
+              </div>
+              <div class="form-row">
+                  <div class="form-group">
+                      <label>收入表 CSV 連結</label>
+                      <input type="url" id="incomeSheetUrl" readonly
+                             value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRqZ0tdZx0sH-MxUuT7U2nysa7RXpe5WyAHOrJCAlR4pfFdTht5LgTTIh0aYLkAFjBVJQzZD_MRvVd4/pub?output=csv">
+                  </div>
+                  <div class="form-group">
+                      <label>支出表 CSV 連結</label>
+                      <input type="url" id="expenseSheetUrl" readonly
+                             value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSx7YV5A3olHd1VmtC1Udhc6K2FMnEY2naun8OTuEnGCA640I_e8yDF-59pCLk5vm24v4uDKDvQgi2N/pub?output=csv">
+                  </div>
+              </div>
+              <div class="form-row">
+                  <div class="form-group">
+                      <label>自動更新間隔（分鐘）</label>
+                      <select id="refreshInterval">
+                          <option value="0">手動更新</option>
+                          <option value="1">1 分鐘</option>
+                          <option value="5">5 分鐘</option>
+                          <option value="10">10 分鐘</option>
+                          <option value="30" selected>30 分鐘</option>
+                          <option value="60">60 分鐘</option>
+                      </select>
+                  </div>
+              </div>
               <div class="btn-group">
-                  <button class="btn btn-success" onclick="importIncomeData()">匯入收入資料</button>
-                  <button class="btn btn-secondary" onclick="clearImportArea('income')">清除</button>
+                  <button class="btn btn-primary" onclick="connectAndLoadData()">
+                      <span id="loadingIcon"></span>
+                      🔗 重新載入資料
+                  </button>
+                  <button class="btn btn-success" onclick="refreshData()">🔄 手動更新</button>
+                  <button class="btn btn-secondary" onclick="saveConfig()">💾 儲存設定</button>
               </div>
           </div>
 
-          <div class="import-section">
-              <h4>📥 批次匯入支出資料</h4>
-              <p class="help-text">從 Google Sheets 複製資料，直接貼上即可（包含標題列）</p>
-              <textarea class="paste-area" id="expenseImportArea" 
-                  placeholder="貼上格式範例：
-項次	承包廠商	承作項目	發票金額	備註
-001	大成建設	基礎工程	15000000	地基開挖
-002	中華工程	結構工程	25000000	鋼筋混凝土"></textarea>
-              <div class="btn-group">
-                  <button class="btn btn-danger" onclick="importExpenseData()">匯入支出資料</button>
-                  <button class="btn btn-secondary" onclick="clearImportArea('expense')">清除</button>
-              </div>
+          <div class="refresh-info">
+              <h4>🔄 自動更新資訊</h4>
+              <p>系統會根據您設定的間隔自動從 Google Sheets 更新資料</p>
+              <p>下次更新時間：<span id="nextUpdateTimeSetup">-</span></p>
           </div>
-
-          <div class="import-section" style="background: #fff3cd;">
-              <h4>⚠️ 注意事項</h4>
-              <ul>
-                  <li>請確保從 Google Sheets 複製時包含標題列</li>
-                  <li>金額欄位會自動去除逗號和貨幣符號</li>
-                  <li>日期格式建議使用 YYYY-MM-DD</li>
-                  <li>匯入前請先備份您的資料</li>
-              </ul>
-          </div>
-      </div>
-  </div>
-
-  <!-- 編輯模態框 -->
-  <div class="modal" id="editModal">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h3 id="modalTitle">編輯項目</h3>
-              <button class="close-btn" onclick="closeModal()">&times;</button>
-          </div>
-          <form id="editForm">
-              <div id="modalFormContent">
-                  <!-- 動態生成表單內容 -->
-              </div>
-              <div class="btn-group">
-                  <button type="submit" class="btn btn-primary">儲存變更</button>
-                  <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
-              </div>
-          </form>
       </div>
   </div>
 
@@ -673,33 +518,229 @@
       let incomeData = [];
       let expenseData = [];
       let chart = null;
+      let refreshTimer = null;
+      let isLoading = false;
+
+      // 預設的 Google Sheets CSV 連結
+      const DEFAULT_INCOME_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqZ0tdZx0sH-MxUuT7U2nysa7RXpe5WyAHOrJCAlR4pfFdTht5LgTTIh0aYLkAFjBVJQzZD_MRvVd4/pub?output=csv';
+      const DEFAULT_EXPENSE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx7YV5A3olHd1VmtC1Udhc6K2FMnEY2naun8OTuEnGCA640I_e8yDF-59pCLk5vm24v4uDKDvQgi2N/pub?output=csv';
 
       // 初始化
       document.addEventListener('DOMContentLoaded', function() {
-          loadDataFromLocalStorage();
-          updateStatistics();
-          updateAllTables();
           initChart();
           
-          // 設定今天日期為預設值
-          const dateInputs = document.querySelectorAll('input[type="date"]');
-          const today = new Date().toISOString().split('T')[0];
-          dateInputs.forEach(input => input.value = today);
+          // 自動載入資料
+          setTimeout(() => {
+              connectAndLoadData();
+          }, 1000);
       });
 
-      // 從 LocalStorage 載入資料
-      function loadDataFromLocalStorage() {
-          const savedIncome = localStorage.getItem('incomeData');
-          const savedExpense = localStorage.getItem('expenseData');
-          
-          if (savedIncome) incomeData = JSON.parse(savedIncome);
-          if (savedExpense) expenseData = JSON.parse(savedExpense);
+      // 格式化金額
+      function formatAmount(amount) {
+          return new Intl.NumberFormat('zh-TW', {
+              style: 'currency',
+              currency: 'TWD',
+              minimumFractionDigits: 0
+          }).format(amount);
       }
 
-      // 儲存資料到 LocalStorage
-      function saveDataToLocalStorage() {
-          localStorage.setItem('incomeData', JSON.stringify(incomeData));
-          localStorage.setItem('expenseData', JSON.stringify(expenseData));
+      // 更新連線狀態
+      function updateConnectionStatus(status, message) {
+          const statusElement = document.getElementById('connectionStatus');
+          const statusText = document.getElementById('statusText');
+          
+          statusElement.className = `connection-status ${status}`;
+          statusText.textContent = message;
+          
+          if (status === 'connected') {
+              const lastUpdate = document.getElementById('lastUpdate');
+              lastUpdate.textContent = `最後更新：${new Date().toLocaleString('zh-TW')}`;
+          }
+      }
+
+      // 解析 CSV 資料
+      function parseCSV(csvText) {
+          const lines = csvText.trim().split('\n');
+          if (lines.length < 2) return [];
+          
+          const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+          const data = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+              
+              const values = [];
+              let current = '';
+              let inQuotes = false;
+              
+              for (let j = 0; j < line.length; j++) {
+                  const char = line[j];
+                  if (char === '"') {
+                      inQuotes = !inQuotes;
+                  } else if (char === ',' && !inQuotes) {
+                      values.push(current.replace(/"/g, '').trim());
+                      current = '';
+                  } else {
+                      current += char;
+                  }
+              }
+              values.push(current.replace(/"/g, '').trim());
+              
+              if (values.length >= headers.length && values.some(v => v)) {
+                  const row = {};
+                  headers.forEach((header, index) => {
+                      row[header] = values[index] || '';
+                  });
+                  data.push(row);
+              }
+          }
+          
+          return data;
+      }
+
+      // 載入收入資料
+      async function loadIncomeData(url) {
+          try {
+              const response = await fetch(url + '&timestamp=' + Date.now());
+              if (!response.ok) throw new Error('無法載入收入資料');
+              
+              const csvText = await response.text();
+              const rawData = parseCSV(csvText);
+              
+              incomeData = rawData.map((row, index) => ({
+                  id: index + 1,
+                  date: row['日期'] || row['Date'] || row['date'] || '',
+                  source: row['收入來源'] || row['Source'] || row['來源'] || row['source'] || '',
+                  amount: parseFloat((row['金額'] || row['Amount'] || row['amount'] || '0').toString().replace(/[^0-9.-]/g, '')) || 0,
+                  notes: row['備註'] || row['Notes'] || row['Note'] || row['notes'] || ''
+              })).filter(item => item.amount > 0 || item.source);
+              
+              return true;
+          } catch (error) {
+              console.error('載入收入資料失敗:', error);
+              return false;
+          }
+      }
+
+      // 載入支出資料
+      async function loadExpenseData(url) {
+          try {
+              const response = await fetch(url + '&timestamp=' + Date.now());
+              if (!response.ok) throw new Error('無法載入支出資料');
+              
+              const csvText = await response.text();
+              const rawData = parseCSV(csvText);
+              
+              expenseData = rawData.map((row, index) => ({
+                  id: index + 1,
+                  itemNo: row['項次'] || row['Item No'] || row['編號'] || row['itemNo'] || '',
+                  vendor: row['承包廠商'] || row['Vendor'] || row['廠商'] || row['vendor'] || '',
+                  item: row['承作項目'] || row['Item'] || row['項目'] || row['item'] || '',
+                  amount: parseFloat((row['發票金額'] || row['Amount'] || row['金額'] || row['amount'] || '0').toString().replace(/[^0-9.-]/g, '')) || 0,
+                  notes: row['備註'] || row['Notes'] || row['Note'] || row['notes'] || ''
+              })).filter(item => item.amount > 0 || item.vendor || item.item);
+              
+              return true;
+          } catch (error) {
+              console.error('載入支出資料失敗:', error);
+              return false;
+          }
+      }
+
+      // 連接並載入資料
+      async function connectAndLoadData() {
+          if (isLoading) return;
+          
+          isLoading = true;
+          const loadingIcon = document.getElementById('loadingIcon');
+          const refreshLoadingIcon = document.getElementById('refreshLoadingIcon');
+          
+          if (loadingIcon) loadingIcon.innerHTML = '<span class="loading"></span> ';
+          if (refreshLoadingIcon) refreshLoadingIcon.innerHTML = '<span class="loading"></span> ';
+          
+          updateConnectionStatus('', '正在從 Google Sheets 載入資料...');
+          
+          try {
+              const incomeSuccess = await loadIncomeData(DEFAULT_INCOME_URL);
+              const expenseSuccess = await loadExpenseData(DEFAULT_EXPENSE_URL);
+              
+              if (incomeSuccess && expenseSuccess) {
+                  updateConnectionStatus('connected', `✅ 資料載入成功！收入 ${incomeData.length} 筆，支出 ${expenseData.length} 筆`);
+                  updateStatistics();
+                  updateAllTables();
+                  updateChart();
+                  setupAutoRefresh();
+              } else if (incomeSuccess || expenseSuccess) {
+                  updateConnectionStatus('connected', '⚠️ 部分資料載入成功，請檢查 Google Sheets 設定');
+                  updateStatistics();
+                  updateAllTables();
+                  updateChart();
+              } else {
+                  updateConnectionStatus('error', '❌ 資料載入失敗，請檢查 Google Sheets 是否已公開發布');
+              }
+          } catch (error) {
+              updateConnectionStatus('error', `❌ 連接失敗：${error.message}`);
+          }
+          
+          isLoading = false;
+          if (loadingIcon) loadingIcon.innerHTML = '';
+          if (refreshLoadingIcon) refreshLoadingIcon.innerHTML = '';
+      }
+
+      // 手動更新資料
+      function refreshData() {
+          connectAndLoadData();
+      }
+
+      // 設定自動更新
+      function setupAutoRefresh() {
+          if (refreshTimer) {
+              clearInterval(refreshTimer);
+          }
+          
+          const interval = parseInt(document.getElementById('refreshInterval').value);
+          if (interval > 0) {
+              refreshTimer = setInterval(() => {
+                  connectAndLoadData();
+              }, interval * 60 * 1000);
+              
+              updateNextUpdateTime(interval);
+          }
+      }
+
+      // 更新下次更新時間顯示
+      function updateNextUpdateTime(intervalMinutes) {
+          const nextUpdate = new Date();
+          nextUpdate.setMinutes(nextUpdate.getMinutes() + intervalMinutes);
+          const timeString = nextUpdate.toLocaleString('zh-TW');
+          
+          const nextUpdateElement = document.getElementById('nextUpdateTime');
+          const nextUpdateSetupElement = document.getElementById('nextUpdateTimeSetup');
+          
+          if (nextUpdateElement) nextUpdateElement.textContent = timeString;
+          if (nextUpdateSetupElement) nextUpdateSetupElement.textContent = timeString;
+      }
+
+      // 儲存設定
+      function saveConfig() {
+          const interval = document.getElementById('refreshInterval').value;
+          localStorage.setItem('refreshInterval', interval);
+          setupAutoRefresh();
+          alert('設定已儲存！');
+      }
+
+      // 更新統計資料
+      function updateStatistics() {
+          const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
+          const totalExpense = expenseData.reduce((sum, item) => sum + item.amount, 0);
+          const netBalance = totalIncome - totalExpense;
+          const totalTransactions = incomeData.length + expenseData.length;
+
+          document.getElementById('totalIncome').textContent = formatAmount(totalIncome);
+          document.getElementById('totalExpense').textContent = formatAmount(totalExpense);
+          document.getElementById('netBalance').textContent = formatAmount(netBalance);
+          document.getElementById('totalTransactions').textContent = totalTransactions;
       }
 
       // 切換分頁
@@ -711,100 +752,4 @@
           event.target.classList.add('active');
           
           // 更新分頁內容
-          document.querySelectorAll('.tab-content').forEach(content => {
-              content.classList.remove('active');
-          });
-          document.getElementById(tabName).classList.add('active');
-          
-          // 更新圖表
-          if (tabName === 'overview') {
-              updateChart();
-          }
-      }
-
-      // 新增收入
-      document.getElementById('incomeForm').addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const formData = new FormData(e.target);
-          const income = {
-              id: Date.now(),
-              date: formData.get('date'),
-              source: formData.get('source'),
-              amount: parseFloat(formData.get('amount')),
-              notes: formData.get('notes') || ''
-          };
-          
-          incomeData.push(income);
-          saveDataToLocalStorage();
-          updateStatistics();
-          updateAllTables();
-          updateChart();
-          
-          e.target.reset();
-          const today = new Date().toISOString().split('T')[0];
-          e.target.querySelector('input[type="date"]').value = today;
-          
-          alert('收入已成功新增！');
-      });
-
-      // 新增支出
-      document.getElementById('expenseForm').addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const formData = new FormData(e.target);
-          const expense = {
-              id: Date.now(),
-              itemNo: formData.get('itemNo') || '',
-              vendor: formData.get('vendor'),
-              item: formData.get('item'),
-              amount: parseFloat(formData.get('amount')),
-              notes: formData.get('notes') || ''
-          };
-          
-          expenseData.push(expense);
-          saveDataToLocalStorage();
-          updateStatistics();
-          updateAllTables();
-          updateChart();
-          
-          e.target.reset();
-          
-          alert('支出已成功新增！');
-      });
-
-      // 批次匯入收入資料
-      function importIncomeData() {
-          const data = document.getElementById('incomeImportArea').value.trim();
-          if (!data) {
-              alert('請先貼上資料！');
-              return;
-          }
-          
-          try {
-              const lines = data.split('\n');
-              const headers = lines[0].split('\t');
-              
-              for (let i = 1; i < lines.length; i++) {
-                  const values = lines[i].split('\t');
-                  if (values.length >= 3) {
-                      const income = {
-                          id: Date.now() + i,
-                          date: values[0] || new Date().toISOString().split('T')[0],
-                          source: values[1] || '',
-                          amount: parseFloat(values[2].replace(/[^0-9.-]/g, '')) || 0,
-                          notes: values[3] || ''
-                      };
-                      incomeData.push(income);
-                  }
-              }
-              
-              saveDataToLocalStorage();
-              updateStatistics();
-              updateAllTables();
-              updateChart();
-              
-              document.getElementById('incomeImportArea').value = '';
-              alert(`成功匯入 ${lines.length - 1} 筆收入資料！`);
-          } catch (error) {
-              alert('匯入失敗
+          document.querySelectorAll('.tab-content').forEach(content =>
