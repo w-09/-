@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收支分析儀表板 - 後台自動更新</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+      body {
+          font-family: 'Microsoft JhengHei', Arial, sans-serif;
+          margin: 20px;
+          background-color: #f5f5f5;
+      }
+      .container {
+          max-width: 1400px;
+          margin: 0 auto;
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .auto-sync-indicator {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #28a745, #20c997);
+          color: white;
+          padding: 10px 15px;
+          border-radius: 25px;
+          font-size: 12px;
+          font-weight: bold;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+          z-index: 1000;
+          animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+          70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+      }
+      .header {
+          background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+          color: white;
+          padding: 30px;
+          border-radius: 10px;
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      .header h1 {
+          margin: 0 0 10px 0;
+          font-size: 2.5em;
+          font-weight: 300;
+      }
+      .header p {
+          margin: 0;
+          font-size: 1.2em;
+          opacity: 0.9;
+      }
+      .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+          margin: 20px 0;
+      }
+      .stat-card {
+          padding: 25px;
+          border-radius: 10px;
+          text-align: center;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+          color: white;
+          position: relative;
+          overflow: hidden;
+      }
+      .stat-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          transition: left 0.5s;
+      }
+      .stat-card:hover::before {
+          left: 100%;
+      }
+      .stat-card.income {
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      }
+      .stat-card.expense {
+          background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+      }
+      .stat-card.balance {
+          background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+      }
+      .stat-card.transactions {
+          background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%);
+      }
+      .stat-card h3 {
+          font-size: 2.5em;
+          margin: 0 0 10px 0;
+          font-weight: 300;
+      }
+      .stat-card p {
+          font-size: 1.1em;
+          margin: 0;
+          opacity: 0.9;
+      }
+      .chart-container {
+          position: relative;
+          height: 400px;
+          margin: 30px 0;
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .chart-title {
+          text-align: center;
+          font-size: 1.3em;
+          font-weight: bold;
+          color: #2c3e50;
+          margin-bottom: 20px;
+      }
+      .controls {
+          background: #f8f9fa;
+          padding: 20px;
+          border-radius: 10px;
+          margin: 20px 0;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+      .control-group {
+          margin: 15px 0;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 15px;
+      }
+      label {
+          font-weight: bold;
+          color: #495057;
+          min-width: 120px;
+      }
+      input, select {
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          font-size: 14px;
+      }
+      input[type="checkbox"] {
+          transform: scale(1.2);
+          margin: 0 8px 0 0;
+      }
+      button {
+          background: #007bff;
+          color: white;
+          border: none;
+          padding: 12px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          margin: 5px;
+          transition: all 0.3s ease;
+          font-weight: 500;
+      }
+      button:hover {
+          background: #0056b3;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      button.btn-success {
+          background: #28a745;
+      }
+      button.btn-success:hover {
+          background: #218838;
+      }
+      button.btn-warning {
+          background: #ffc107;
+          color: #212529;
+      }
+      button.btn-warning:hover {
+          background: #e0a800;
+      }
+      .data-table {
+          margin: 20px 0;
+          overflow-x: auto;
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .table-header {
+          background: #f8f9fa;
+          padding: 20px;
+          border-bottom: 1px solid #dee2e6;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+      .table-header h3 {
+          margin: 0;
+          color: #2c3e50;
+      }
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+      th, td {
+          padding: 15px;
+          text-align: left;
+          border-bottom: 1px solid #dee2e6;
+      }
+      th {
+          background-color: #f8f9fa;
+          font-weight: bold;
+          color: #495057;
+          position: sticky;
+          top: 0;
+      }
+      tr:hover {
+          background-color: #f8f9fa;
+      }
+      .amount {
+          font-weight: bold;
+          text-align: right;
+      }
+      .amount.positive {
+          color: #28a745;
+      }
+      .amount.negative {
+          color: #dc3545;
+      }
+      .status-indicator {
+          padding: 4px 12px;
+          border-radius: 15px;
+          font-size: 12px;
+          font-weight: bold;
+          text-align: center;
+      }
+      .status-income {
+          background: #d4edda;
+          color: #155724;
+      }
+      .status-expense {
+          background: #f8d7da;
+          color: #721c24;
+      }
+      .sync-log {
+          background: #f8f9fa;
+          border-left: 4px solid #007bff;
+          padding: 20px;
+          margin: 20px 0;
+          border-radius: 0 10px 10px 0;
+          max-height: 300px;
+          overflow-y: auto;
+      }
+      .sync-log h4 {
+          margin-top: 0;
+          color: #007bff;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+      }
+      .log-entry {
+          font-size: 13px;
+          margin: 8px 0;
+          padding: 8px 0;
+          border-bottom: 1px solid #e9ecef;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .log-entry:last-child {
+          border-bottom: none;
+      }
+      .log-success {
+          color: #28a745;
+      }
+      .log-error {
+          color: #dc3545;
+      }
+      .log-info {
+          color: #17a2b8;
+      }
+      .log-warning {
+          color: #ffc107;
+      }
+      .update-timestamp {
+          text-align: center;
+          font-size: 14px;
+          color: #6c757d;
+          margin: 15px 0;
+          padding: 10px;
+          background: #f8f9fa;
+          border-radius: 5px;
+      }
+      .tabs {
+          display: flex;
+          background: #f8f9fa;
+          border-radius: 10px;
+          margin: 20px 0;
+          overflow: hidden;
+      }
+      .tab {
+          flex: 1;
+          padding: 15px 20px;
+          text-align: center;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+          font-weight: 500;
+          transition: all 0.3s ease;
+      }
+      .tab.active {
+          background: #007bff;
+          color: white;
+      }
+      .tab-content {
+          display: none;
+      }
+      .tab-content.active {
+          display: block;
+      }
+      .charts-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+          gap: 30px;
+          margin: 30px 0;
+      }
+      @media (max-width: 768px) {
+          .charts-grid {
+              grid-template-columns: 1fr;
+          }
+          .control-group {
+              flex-direction: column;
+              align-items: flex-start;
+          }
+          .stats-grid {
+              grid-template-columns: 1fr;
+          }
+      }
+      .error-message {
+          background: #f8d7da;
+          color: #721c24;
+          padding: 15px;
+          border-radius: 5px;
+          margin: 10px 0;
+          border: 1px solid #f5c6cb;
+      }
+      .loading-message {
+          background: #d1ecf1;
+          color: #0c5460;
+          padding: 15px;
+          border-radius: 5px;
+          margin: 10px 0;
+          border: 1px solid #bee5eb;
+          text-align: center;
+      }
+  </style>
+</head>
+<body>
+  <div class="auto-sync-indicator" id="syncIndicator">
+      🔄 自動同步中... <span id="nextUpdateIn">30</span>s
+  </div>
+
+  <div class="container">
+      <div class="header">
+          <h1>💰 收支分析儀表板</h1>
+          <p>前鎮亞灣智慧公宅(第一期)新建統包工程 - 即時財務監控</p>
+      </div>
+      
+      <div class="update-timestamp">
+          📊 資料來源: Google Sheets | 最後更新: <span id="lastUpdate">載入中...</span> | 
+          📈 收入項目: <span id="incomeCount">0</span> | 💸 支出項目: <span id="expenseCount">0</span>
+      </div>
+
+      <div class="stats-grid">
+          <div class="stat-card income">
+              <h3 id="totalIncome">載入中...</h3>
+              <p>💰 總收入</p>
+          </div>
+          <div class="stat-card expense">
+              <h3 id="totalExpense">載入中...</h3>
+              <p>💸 總支出</p>
+          </div>
+          <div class="stat-card balance">
+              <h3 id="netBalance">載入中...</h3>
+              <p>💎 淨餘額</p>
+          </div>
+          <div class="stat-card transactions">
+              <h3 id="totalTransactions">載入中...</h3>
+              <p>📊 總交易數</p>
+          </div>
+      </div>
+
+      <div class="controls">
+          <h3>📋 圖表控制與設定</h3>
+          <div class="control-group">
+              <label>圖表類型:</label>
+              <select id="chartType" onchange="updateCharts()">
+                  <option value="bar">柱狀圖</option>
+                  <option value="line">線圖</option>
+                  <option value="doughnut">圓餅圖</option>
+                  <option value="radar">雷達圖</option>
+              </select>
+          </div>
+          <div class="control-group">
+              <label>顯示數據:</label>
+              <input type="checkbox" id="showIncome" checked onchange="updateCharts()"> 收入
+              <input type="checkbox" id="showExpense" checked onchange="updateCharts()"> 支出
+              <input type="checkbox" id="showTrend" onchange="updateCharts()"> 趨勢線
+          </div>
+          <div class="control-group">
+              <label>同步設定:</label>
+              <select id="syncInterval" onchange="updateSyncInterval()">
+                  <option value="10000">10秒</option>
+                  <option value="30000" selected>30秒</option>
+                  <option value="60000">1分鐘</option>
+                  <option value="300000">5分鐘</option>
+              </select>
+          </div>
+          <div class="control-group">
+              <button onclick="manualSync()" class="btn-success">🔄 手動同步</button>
+              <button onclick="exportCharts()" class="btn-warning">📊 匯出圖表</button>
+              <button onclick="exportData()">📋 匯出數據</button>
+              <button onclick="toggleAutoSync()" id="toggleSyncBtn">⏸️ 暫停同步</button>
+          </div>
+      </div>
+
+      <div class="tabs">
+          <button class="tab active" onclick="switchTab('overview')">📊 總覽</button>
+          <button class="tab" onclick="switchTab('income')">💰 收入分析</button>
+          <button class="tab" onclick="switchTab('expense')">💸 支出分析</button>
+          <button class="tab" onclick="switchTab('cashflow')">📈 現金流</button>
+      </div>
+
+      <!-- 總覽頁面 -->
+      <div class="tab-content active" id="overview">
+          <div class="charts-grid">
+              <div class="chart-container">
+                  <div class="chart-title">📊 收支對比分析</div>
+                  <canvas id="overviewChart"></canvas>
+              </div>
+              <div class="chart-container">
+                  <div class="chart-title">📈 月度收支趨勢</div>
+                  <canvas id="trendChart"></canvas>
+              </div>
+          </div>
+      </div>
+
+      <!-- 收入分析頁面 -->
+      <div class="tab-content" id="income">
+          <div class="chart-container">
+              <div class="chart-title">💰 收入來源分布</div>
+              <canvas id="incomeChart"></canvas>
+          </div>
+          
+          <div class="data-table">
+              <div class="table-header">
+                  <h3>💰 收入明細 <span id="incomeTableCount">(載入中...)</span></h3>
+                  <button onclick="exportIncomeData()">📤 匯出收入數據</button>
+              </div>
+              <table>
+                  <thead>
+                      <tr>
+                          <th>入賬日期</th>
+                          <th>收入來源</th>
+                          <th>金額</th>
+                          <th>備註</th>
+                          <th>狀態</th>
+                      </tr>
+                  </thead>
+                  <tbody id="incomeTableBody">
+                      <tr>
+                          <td colspan="5" class="loading-message">正在載入收入數據...</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+      <!-- 支出分析頁面 -->
+      <div class="tab-content" id="expense">
+          <div class="charts-grid">
+              <div class="chart-container">
+                  <div class="chart-title">🏗️ 廠商支出分布</div>
+                  <canvas id="vendorChart"></canvas>
+              </div>
+              <div class="chart-container">
+                  <div class="chart-title">📋 工程類別分析</div>
+                  <canvas id="categoryChart"></canvas>
+              </div>
+          </div>
+          
+          <div class="data-table">
+              <div class="table-header">
+                  <h3>💸 支出明細 <span id="expenseTableCount">(載入中...)</span></h3>
+                  <button onclick="exportExpenseData()">📤 匯出支出數據</button>
+              </div>
+              <table>
+                  <thead>
+                      <tr>
+                          <th>項次</th>
+                          <th>承包廠商</th>
+                          <th>承作項目</th>
+                          <th>發票金額</th>
+                          <th>備註</th>
+                          <th>狀態</th>
+                      </tr>
+                  </thead>
+                  <tbody id="expenseTableBody">
+                      <tr>
+                          <td colspan="6" class="loading-message">正在載入支出數據...</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+      <!-- 現金流頁面 -->
+      <div class="tab-content" id="cashflow">
+          <div class="chart-container">
+              <div class="chart-title">💹 現金流量分析</div>
+              <canvas id="cashflowChart"></canvas>
+          </div>
+          
+          <div class="data-table">
+              <div class="table-header">
+                  <h3>📊 現金流明細</h3>
+              </div>
+              <table>
+                  <thead>
+                      <tr>
+                          <th>日期</th>
+                          <th>類型</th>
+                          <th>項目</th>
+                          <th>金額</th>
+                          <th>累計餘額</th>
+                          <th>變化</th>
+                      </tr>
+                  </thead>
+                  <tbody id="cashflowTableBody">
+                      <tr>
+                          <td colspan="6" class="loading-message">正在載入現金流數據...</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+      <div class="sync-log">
+          <h4>📋 同步記錄與系統狀態</h4>
+          <div id="syncLogContent">
+              <div class="log-entry log-info">🚀 系統啟動中...</div>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      // 系統配置 - 使用您提供的Google Sheets連結
+      const CONFIG = {
+          SHEETS_ID: '1r8WIQBv41Fz19onWPXcIekwMY-L-BZ36U1amh8LA_2U',
+          INCOME_GID: '892763171', // 收入工作表GID
+          EXPENSE_GID: '0', // 支出工作表GID
+          SYNC_INTERVAL: 30000, // 30秒同步一次
+          MAX_LOG_ENTRIES: 30
+      };
+
+      // 全域變數
+      let incomeData = [];
+      let expenseData = [];
+      let previousIncomeData = [];
+      let previousExpenseData = [];
+      let charts = {};
+      let syncInterval = null;
+      let countdownInterval = null;
+      let nextUpdateCountdown = 30;
+      let isAutoSyncEnabled = true;
+      let currentTab = 'overview';
+
+      // Google Sheets CSV URLs
+      const INCOME_CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEETS_ID}/export?format=csv&gid=${CONFIG.INCOME_GID}`;
+      const EXPENSE_CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEETS_ID}/export?format=csv&gid=${CONFIG.EXPENSE_GID}`;
+
+      // 初始化系統
+      async function initSystem() {
+          addLogEntry('🚀 系統初始化中...', 'info');
+          
+          try {
+              await initCharts();
+              
+              // 先載入示例數據
+              loadSampleData();
+              updateStats();
+              updateCharts();
+              updateTables();
+              updateLastUpdateTime();
+              
+              // 然後嘗試從Google Sheets同步
+              await performSync();
+              
+              startAutoSync();
+              startCountdown();
+              
+              addLogEntry('✅ 系統初始化完成，自動同步已啟動', 'success');
+          } catch (error) {
+              addLogEntry('❌ 系統初始化失敗: ' + error.message, 'error');
+              console.error('初始化錯誤:', error);
+          }
+      }
+
+      // 載入示例數據
+      function loadSampleData() {
+          // 收入示例數據 - 新格式：入賬日期/收入來源/金額/備註
+          incomeData = [
+              { 入賬日期: '2024-01-15', 收入來源: '工程款第一期', 金額: 50000000, 備註: '合約款項' },
+              { 入賬日期: '2024-02-20', 收入來源: '政府補助', 金額: 10000000, 備註: '智慧建築補助' },
+              { 入賬日期: '2024-03-10', 收入來源: '工程款第二期', 金額: 30000000, 備註: '進度款' },
+              { 入賬日期: '2024-04-05', 收入來源: '追加預算', 金額: 15000000, 備註: '變更設計' },
+              { 入賬日期: '2024-05-12', 收入來源: '工程款第三期', 金額: 25000000, 備註: '階段完工款' }
+          ];
+
+          // 支出示例數據
+          expenseData = [
+              { 項次: '001', 承包廠商: '大成建設', 承作項目: '基礎工程', 本次發票金額: 15000000, 備註: '地基開挖' },
+              { 項次: '002', 承包廠商: '中華工程', 承作項目: '結構工程', 本次發票金額: 25000000, 備註: '鋼筋混凝土' },
+              { 項次: '003', 承包廠商: '台灣電力', 承作項目: '電氣工程', 本次發票金額: 8000000, 備註: '配電系統' },
+              { 項次: '004', 承包廠商: '智慧科技', 承作項目: '智能系統', 本次發票金額: 12000000, 備註: 'IoT設備安裝' },
+              { 項次: '005', 承包廠商: '環保工程', 承作項目: '綠建築設施', 本次發票金額: 6000000, 備註: '太陽能板' },
+              { 項次: '006', 承包廠商: '裝修公司', 承作項目: '室內裝修', 本次發票金額: 18000000, 備註: '精裝修工程' }
+          ];
+
+          addLogEntry('📋 已載入示例數據進行展示', 'info');
+      }
+
+      // 初始化圖表
+      async function initCharts() {
+          // 總覽圖表
+          charts.overview = new Chart(document.getElementById('overviewChart').getContext('2d'), {
+              type: 'bar',
+              data: { labels: [], datasets: [] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { display: true, position: 'top' }
+                  },
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              callback: function(value) {
+                                  return 'NT$ ' + (value / 1000000).toFixed(1) + 'M';
+                              }
+                          }
+                      }
+                  },
+                  animation: { duration: 1000, easing: 'easeInOutQuart' }
+              }
+          });
+
+          // 趨勢圖表
+          charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), {
+              type: 'line',
+              data: { labels: [], datasets: [] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { display: true, position: 'top' }
+                  },
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              callback: function(value) {
+                                  return 'NT$ ' + (value / 1000000).toFixed(1) + 'M';
+                              }
+                          }
+                      }
+                  },
+                  animation: { duration: 1000, easing: 'easeInOutQuart' }
+              }
+          });
+
+          // 收入圖表
+          charts.income = new Chart(document.getElementById('incomeChart').getContext('2d'), {
+              type: 'doughnut',
+              data: { labels: [], datasets: [] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { display: true, position: 'bottom' },
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  const value = context.parsed;
+                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                  const percentage = ((value / total) * 100).toFixed(1);
+                                  return context.label + ': NT$ ' + value.toLocaleString() + ' (' + percentage + '%)';
+                              }
+                          }
+                      }
+                  },
+                  animation: { duration: 1000, easing: 'easeInOutQuart' }
+              }
+          });
+
+          // 廠商支出圖表
+          charts.vendor = new Chart(document.getElementById('vendorChart').getContext('2d'), {
+              type: 'doughnut',
+              data: { labels: [], datasets: [] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { display: true, position: 'bottom' },
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  const value = context.parsed;
+                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                  const percentage = ((value / total) * 100).toFixed(1);
+                                  return context.label + ': NT$ ' + value.toLocaleString() + ' (' + percentage + '%)';
+                              }
+                          }
+                      }
+                  },
+                  animation: { duration: 1000, easing: 'easeInOutQuart' }
+              }
+          });
+
+          // 工程類別圖表
+          charts.category = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+              type: 'bar',
+              data: { labels: [], datasets: [] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { display: false }
+                  },
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              callback: function(value) {
+                                  
