@@ -67,7 +67,7 @@
   .c-date{width:82px;text-align:center;font-size:11px;}
   .c-pct{width:105px;}
   .c-mp{width:58px;text-align:center;}
-  .c-diff{width:62px;text-align:center;}
+  .c-diff{width:70px;text-align:center;}
   .c-text{min-width:120px;}
   .c-note{min-width:110px;}
 
@@ -100,10 +100,7 @@
   .item-name{font-weight:600;color:#111827;}
   .item-sub{font-size:10px;color:#9ca3af;margin-top:1px;}
   .issue-red{color:#dc2626;}
-
-  .diff-pos{color:#15803d;font-weight:700;}
-  .diff-neg{color:#dc2626;font-weight:700;}
-  .diff-zero{color:#9ca3af;}
+  .abnormal-orange{color:#b45309;}
 
   #toast{position:fixed;bottom:20px;right:20px;background:#1e3a5f;color:#fff;padding:9px 16px;border-radius:3px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 3px 10px rgba(0,0,0,.2);transition:opacity .3s;opacity:0;pointer-events:none;}
 
@@ -172,103 +169,90 @@
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════
-//  DATA
-//  欄位說明：
-//  planMP    = 原預計出工數（基準值，不輕易改動）
-//  actualMP  = 本日出工數
-//  tomorrowMP= 明日預計出工數
-//  todayWork = 本日施工內容
-//  tomorrowWork = 明天預定工作
-//  issue     = 延遲原因／對策
-//  abnormal  = 異常原因說明
-// ══════════════════════════════════════════
+// ★ 修改說明：所有工項的 pct / actualMP / tomorrowMP 歸零，diff 清空
 const CATS = [
   { name:"假設工程", color:"#1e3a8a", items:[
-    {item:"施工架",   bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:60,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"",  tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工電梯", bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:50,  status:"進行中", planMP:2,  actualMP:0,  tomorrowMP:2,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"塔吊",     bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:50,  status:"進行中", planMP:2,  actualMP:0,  tomorrowMP:2,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工電梯", bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"塔吊",     bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
   ]},
   { name:"室內裝修", color:"#4c1d95", items:[
-    {item:"輕隔間",         bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:10, actualMP:10, tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:10, actualMP:10, tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:60,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"", tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"油漆",           bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
-    {item:"油漆",           bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
-    {item:"油漆",           bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:85,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
-    {item:"油漆",           bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
-    {item:"戶內地磚+壁磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:20,  status:"進行中", planMP:12, actualMP:0,  tomorrowMP:12, todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"走廊+陽台地磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"戶內暗架天花板", bldg:"全棟",planEnd:"09/24", actualEnd:"",      pct:70,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"09/05開始施作", tomorrowWork:"09/24完成", issue:"", abnormal:"", note:"09/05開始-09/24完成"},
-    {item:"1F/2F戶內天花板",bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"走廊造型天花板", bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"14F-11F分段完成"},
-    {item:"廚具",           bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:5,   status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"衛浴設備",       bldg:"全棟",planEnd:"12/30", actualEnd:"",      pct:5,   status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"輕隔間",         bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"油漆",           bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
+    {item:"油漆",           bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
+    {item:"油漆",           bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
+    {item:"油漆",           bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
+    {item:"戶內地磚+壁磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"走廊+陽台地磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"戶內暗架天花板", bldg:"全棟",planEnd:"09/24", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"09/05開始施作", tomorrowWork:"09/24完成", issue:"", abnormal:"", note:"09/05開始-09/24完成"},
+    {item:"1F/2F戶內天花板",bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"走廊造型天花板", bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"14F-11F分段完成"},
+    {item:"廚具",           bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"衛浴設備",       bldg:"全棟",planEnd:"12/30", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
   ]},
   { name:"外牆", color:"#1e4e79", items:[
-    {item:"格柵",       bldg:"東",  planEnd:"09/11", actualEnd:"09/11", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"西",  planEnd:"09/11", actualEnd:"09/11", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"南",  planEnd:"09/16", actualEnd:"09/16", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"北",  planEnd:"08/23", actualEnd:"08/23", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"石材",       bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:80,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"", tomorrowWork:"09/25完成", issue:"", abnormal:"", note:""},
-    {item:"塗料",       bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
-    {item:"塗料",       bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
-    {item:"塗料",       bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:85,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
-    {item:"塗料",       bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
-    {item:"太陽能板R1F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"太陽能板R2F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"屋頂防水",   bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:70,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"東",  planEnd:"09/11", actualEnd:"09/11", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"西",  planEnd:"09/11", actualEnd:"09/11", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"南",  planEnd:"09/16", actualEnd:"09/16", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"北",  planEnd:"08/23", actualEnd:"08/23", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"石材",       bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/25完成", issue:"", abnormal:"", note:""},
+    {item:"塗料",       bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
+    {item:"塗料",       bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
+    {item:"塗料",       bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
+    {item:"塗料",       bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
+    {item:"太陽能板R1F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"太陽能板R2F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"屋頂防水",   bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
   ]},
   { name:"景觀", color:"#14532d", items:[
-    {item:"1F景觀防水",  bldg:"全棟",planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀防水",  bldg:"全棟",planEnd:"10/01", actualEnd:"",      pct:40,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"3F景觀防水",  bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:50,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"延至09/15", abnormal:"", note:"08/30延至09/15"},
-    {item:"屋頂景觀花台",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:70,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F景觀花台",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:50,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:20,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:20,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"屋頂景觀鋪面",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F景觀鋪面",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:40,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"屋頂植栽",    bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F植栽",      bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:40,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F植栽",      bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:20,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F植栽",      bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F景觀防水",  bldg:"全棟",planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀防水",  bldg:"全棟",planEnd:"10/01", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"3F景觀防水",  bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"延至09/15", abnormal:"", note:"08/30延至09/15"},
+    {item:"屋頂景觀花台",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F景觀花台",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"屋頂景觀鋪面",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F景觀鋪面",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"屋頂植栽",    bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F植栽",      bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F植栽",      bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F植栽",      bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
   ]},
   { name:"地下室", color:"#451a03", items:[
-    {item:"EPOXY(含標線)B2",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:5, status:"待施工",planMP:4,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
-    {item:"EPOXY(含標線)B1",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:5, status:"待施工",planMP:4,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
+    {item:"EPOXY(含標線)B2",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
+    {item:"EPOXY(含標線)B1",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
   ]},
   { name:"機電", color:"#422006", items:[
-    {item:"給水(戶內)",   bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:70, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"給水(戶外)",   bldg:"全棟",planEnd:"09/04", actualEnd:"09/04", pct:100,status:"已完成", planMP:0, actualMP:0, tomorrowMP:0, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"排水",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:60, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"消防",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:65, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"14F-11F骨架完成",tomorrowWork:"10F-3F封版",issue:"", abnormal:"", note:"14F-11F 08/28-09/05完成骨架"},
-    {item:"電力",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:50, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"弱電監控",     bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:40, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"空調冷氣",     bldg:"全棟",planEnd:"11/15", actualEnd:"",      pct:30, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"冷氣機品牌順序調整，專管審查中", abnormal:"", note:"以專管單位發文至機關後起算"},
-    {item:"電梯使照取得", bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:20, status:"待施工", planMP:4, actualMP:0, tomorrowMP:0, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"全部電梯許可證取得後補件"},
+    {item:"給水(戶內)",   bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"給水(戶外)",   bldg:"全棟",planEnd:"09/04", actualEnd:"09/04", pct:0,status:"已完成", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"排水",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"消防",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"14F-11F骨架完成",tomorrowWork:"10F-3F封版",issue:"", abnormal:"", note:"14F-11F 08/28-09/05完成骨架"},
+    {item:"電力",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"弱電監控",     bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"空調冷氣",     bldg:"全棟",planEnd:"11/15", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"冷氣機品牌順序調整，專管審查中", abnormal:"", note:"以專管單位發文至機關後起算"},
+    {item:"電梯使照取得", bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:0,status:"待施工", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"全部電梯許可證取得後補件"},
   ]},
   { name:"外單位檢查", color:"#7f1d1d", items:[
-    {item:"消防檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"電信檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"雨汙水檢查", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"無障礙勘驗", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"使照申請",   bldg:"—",planEnd:"10/30",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"預計申請10/01，取得10/30"},
-    {item:"用電申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
-    {item:"用水申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
-    {item:"完工",       bldg:"—",planEnd:"2027/02/10",actualEnd:"",pct:0,status:"待施工",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"最終完工目標"},
+    {item:"消防檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"電信檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"雨汙水檢查", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"無障礙勘驗", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"使照申請",   bldg:"—",planEnd:"10/30",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"預計申請10/01，取得10/30"},
+    {item:"用電申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
+    {item:"用水申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
+    {item:"完工",       bldg:"—",planEnd:"2027/02/10",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"最終完工目標"},
   ]},
 ];
 
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
 let STATE={};
 const SK=(ci,ii)=>`${ci}_${ii}`;
 const SL=["已完成","進行中","待施工","延遲","待申請"];
@@ -296,25 +280,15 @@ function saveData(){
 function gv(ci,ii,k){const s=STATE[SK(ci,ii)];return(s&&s[k]!==undefined)?s[k]:CATS[ci].items[ii][k];}
 function sv(ci,ii,k,v){if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};STATE[SK(ci,ii)][k]=v;}
 
-// 修改預計完成日期 → 同步更新 CATS 資料（讓匯出/顯示一致）
-function updatePlanEnd(ci,ii,val,inputEl){
-  const trimmed=val.trim();
-  sv(ci,ii,'planEnd',trimmed);
-  // 標記已修改
-  if(trimmed !== CATS[ci].items[ii].planEnd){
-    inputEl.classList.add('modified');
-  } else {
-    inputEl.classList.remove('modified');
-  }
-  updateStats();
-  updSecPct(ci);
+function updatePlanEnd(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'planEnd',v);
+  el.classList.toggle('modified', v!==CATS[ci].items[ii].planEnd);
+  updateStats();updSecPct(ci);
 }
 
 function pc(p){return p===100?"#15803d":p>=70?"#1d4ed8":p>=40?"#d97706":"#dc2626";}
 
-// ══════════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════════
 function renderAll(){
   const wrap=document.getElementById('mainWrap');
   wrap.innerHTML='';
@@ -376,33 +350,22 @@ function renderTbody(ci){
   const tbody=document.getElementById(`tb_${ci}`);
   tbody.innerHTML='';
   CATS[ci].items.forEach((row,ii)=>{
-    const pct      = gv(ci,ii,'pct');
-    const status   = gv(ci,ii,'status');
-    const planMP   = +gv(ci,ii,'planMP')   || 0;
-    const actualMP = +gv(ci,ii,'actualMP') || 0;
+    const pct        = gv(ci,ii,'pct');
+    const status     = gv(ci,ii,'status');
+    const actualMP   = +gv(ci,ii,'actualMP')   || 0;
     const tomorrowMP = +gv(ci,ii,'tomorrowMP') || 0;
+    const diff       = gv(ci,ii,'diff');
     const todayWork  = gv(ci,ii,'todayWork');
     const tomorrowWork = gv(ci,ii,'tomorrowWork');
-    const iss      = gv(ci,ii,'issue');
-    const abnormal = gv(ci,ii,'abnormal');
-    const note     = gv(ci,ii,'note');
-    const aEnd     = gv(ci,ii,'actualEnd');
-    const planEnd  = gv(ci,ii,'planEnd');
-    const origPlanEnd = CATS[ci].items[ii].planEnd;
-    const isModified = planEnd !== origPlanEnd;
-
-    const isDelay=status==='延遲', isDone=status==='已完成';
-
-    // 差異計算：本日出工數 - 原預計出工數
-    const diff = actualMP - planMP;
-    let diffHtml='<span class="diff-zero">—</span>';
-    if(planMP>0 || actualMP>0){
-      if(diff>0) diffHtml=`<span class="diff-pos">+${diff}</span>`;
-      else if(diff<0) diffHtml=`<span class="diff-neg">${diff}</span>`;
-      else diffHtml=`<span class="diff-zero">0</span>`;
-    }
-
-    const behindHtml=isDelay?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>':'<span style="color:#9ca3af;font-size:11px">—</span>';
+    const iss        = gv(ci,ii,'issue');
+    const abnormal   = gv(ci,ii,'abnormal');
+    const note       = gv(ci,ii,'note');
+    const aEnd       = gv(ci,ii,'actualEnd');
+    const planEnd    = gv(ci,ii,'planEnd');
+    const isModified = planEnd !== CATS[ci].items[ii].planEnd;
+    const isDelay    = status==='延遲';
+    const isDone     = status==='已完成';
+    const behindHtml = isDelay?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>':'<span style="color:#9ca3af;font-size:11px">—</span>';
 
     const tr=document.createElement('tr');
     if(isDelay)tr.className='row-delay';
@@ -419,9 +382,9 @@ function renderTbody(ci){
       <td class="c-status"><span class="badge ${SC[status]}" onclick="cycleStatus(${ci},${ii},this)">${status}</span></td>
       <td class="c-date">
         <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}"
-          title="可直接修改預計完成日期"
+          title="可直接修改預計完成日期，修改後底色變黃"
           onblur="updatePlanEnd(${ci},${ii},this.value,this)"
-          onkeydown="if(event.key==='Enter'){this.blur();}">
+          onkeydown="if(event.key==='Enter')this.blur();">
       </td>
       <td class="c-date">
         <div class="ed" contenteditable="true"
@@ -437,13 +400,17 @@ function renderTbody(ci){
       <td>${behindHtml}</td>
       <td style="border-left:2px solid #e5e7eb">
         <input class="mp-in" type="number" min="0" value="${actualMP}"
-          onchange="sv(${ci},${ii},'actualMP',+this.value);updDiff(${ci},${ii});updateStats();">
+          onchange="sv(${ci},${ii},'actualMP',+this.value);updateStats();">
       </td>
       <td>
         <input class="mp-in" type="number" min="0" value="${tomorrowMP}"
           onchange="sv(${ci},${ii},'tomorrowMP',+this.value);updateStats();">
       </td>
-      <td id="diff_${ci}_${ii}">${diffHtml}</td>
+      <td class="c-diff">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'diff',this.innerText.trim());"
+        >${diff}</div>
+      </td>
       <td style="border-left:2px solid #e5e7eb">
         <div class="ed" contenteditable="true"
           onblur="sv(${ci},${ii},'todayWork',this.innerText.trim());"
@@ -460,9 +427,8 @@ function renderTbody(ci){
         >${iss}</div>
       </td>
       <td>
-        <div class="ed" contenteditable="true"
-          style="${abnormal?'color:#b45309;':''}"
-          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());this.style.color=this.innerText.trim()?'#b45309':'';"
+        <div class="ed abnormal-orange" contenteditable="true"
+          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());"
         >${abnormal}</div>
       </td>
       <td>
@@ -473,18 +439,6 @@ function renderTbody(ci){
     tbody.appendChild(tr);
   });
   updSecPct(ci);
-}
-
-function updDiff(ci,ii){
-  const planMP  = +gv(ci,ii,'planMP')   || 0;
-  const actualMP= +gv(ci,ii,'actualMP') || 0;
-  const diff=actualMP-planMP;
-  const el=document.getElementById(`diff_${ci}_${ii}`);
-  if(!el)return;
-  if(planMP===0&&actualMP===0){el.innerHTML='<span class="diff-zero">—</span>';return;}
-  if(diff>0)      el.innerHTML=`<span class="diff-pos">+${diff}</span>`;
-  else if(diff<0) el.innerHTML=`<span class="diff-neg">${diff}</span>`;
-  else            el.innerHTML=`<span class="diff-zero">0</span>`;
 }
 
 function updPct(ci,ii,val){
@@ -518,9 +472,6 @@ function toggleSec(head){
   b.style.display=b.style.display==='none'?'':'none';
 }
 
-// ══════════════════════════════════════════
-//  STATS
-// ══════════════════════════════════════════
 function updateStats(){
   let done=0,ing=0,wait=0,delay=0,apply=0,aMP=0,tMP=0;
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
@@ -541,9 +492,6 @@ function updateStats(){
     <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">整體完成率&nbsp;<span class="stat-num" style="color:#1e3a5f">${Math.round(done/total*100)}%</span>&nbsp;<span style="font-size:11px;color:#9ca3af">(${done}/${total})</span></div>`;
 }
 
-// ══════════════════════════════════════════
-//  FILTER
-// ══════════════════════════════════════════
 function applyFilter(){
   const fc=document.getElementById('f-cat').value,fs=document.getElementById('f-status').value;
   const fb=document.getElementById('f-bldg').value,fq=document.getElementById('f-search').value.toLowerCase();
@@ -565,30 +513,15 @@ function resetFilter(){
   applyFilter();
 }
 
-// ══════════════════════════════════════════
-//  EXPORT CSV
-// ══════════════════════════════════════════
 function exportCSV(){
   const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%','本日出工數','明日預計出工數','與原預計差異','本日施工內容','明天預定工作','延遲原因／對策','異常原因說明','備註']];
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
-    const planMP=+gv(ci,ii,'planMP')||0;
-    const actualMP=+gv(ci,ii,'actualMP')||0;
-    const diff=actualMP-planMP;
     rows.push([
-      cat.name, CATS[ci].items[ii].item,
-      CATS[ci].items[ii].bldg,
-      gv(ci,ii,'status'),
-      gv(ci,ii,'planEnd'),
-      gv(ci,ii,'actualEnd'),
-      gv(ci,ii,'pct'),
-      actualMP,
-      gv(ci,ii,'tomorrowMP'),
-      diff===0?'0':(diff>0?`+${diff}`:`${diff}`),
-      gv(ci,ii,'todayWork'),
-      gv(ci,ii,'tomorrowWork'),
-      gv(ci,ii,'issue'),
-      gv(ci,ii,'abnormal'),
-      gv(ci,ii,'note'),
+      cat.name, CATS[ci].items[ii].item, CATS[ci].items[ii].bldg,
+      gv(ci,ii,'status'), gv(ci,ii,'planEnd'), gv(ci,ii,'actualEnd'), gv(ci,ii,'pct'),
+      gv(ci,ii,'actualMP'), gv(ci,ii,'tomorrowMP'), gv(ci,ii,'diff'),
+      gv(ci,ii,'todayWork'), gv(ci,ii,'tomorrowWork'),
+      gv(ci,ii,'issue'), gv(ci,ii,'abnormal'), gv(ci,ii,'note'),
     ]);
   }));
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -599,18 +532,12 @@ function exportCSV(){
   showToast('CSV 已匯出');
 }
 
-// ══════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.opacity='1';
   clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000);
 }
 
-// ══════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════
 loadState();
 renderAll();
 setInterval(saveData,60000);
