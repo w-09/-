@@ -1,914 +1,619 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>南一處-亞灣工務所</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .auto-sync-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            font-size: 12px;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
-        }
-        .chart-container {
-            position: relative;
-            height: 500px;
-            margin: 30px 0;
-        }
-        .controls {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .control-group {
-            margin: 10px 0;
-        }
-        label {
-            display: inline-block;
-            width: 150px;
-            font-weight: bold;
-        }
-        input, select {
-            padding: 8px;
-            margin: 0 10px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
-        }
-        .data-table {
-            margin: 20px 0;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        .negative {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .positive {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .status-indicator {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .status-ahead {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status-normal {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        .status-behind {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .sync-log {
-            background: #f8f9fa;
-            border-left: 4px solid #007bff;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .sync-log h4 {
-            margin-top: 0;
-            color: #007bff;
-        }
-        .log-entry {
-            font-size: 12px;
-            margin: 5px 0;
-            padding: 3px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .log-entry:last-child {
-            border-bottom: none;
-        }
-        .log-success {
-            color: #28a745;
-        }
-        .log-error {
-            color: #dc3545;
-        }
-        .log-info {
-            color: #17a2b8;
-        }
-        .update-timestamp {
-            text-align: center;
-            font-size: 12px;
-            color: #6c757d;
-            margin: 10px 0;
-        }
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .summary-card.income {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-        .summary-card.expense {
-            background: linear-gradient(135deg, #dc3545, #fd7e14);
-        }
-        .summary-card.profit {
-            background: linear-gradient(135deg, #6f42c1, #e83e8c);
-        }
-        .summary-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .summary-card .amount {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前鎮亞灣智慧公宅 工程會議追蹤表</title>
+<style>
+  :root{--blue:#1e3a5f;--border:#d1d5db;--bg:#f5f5f5;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);font-size:13px;color:#1e293b;}
+
+  .topbar{background:#1e3a5f;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  .topbar-left{display:flex;flex-direction:column;gap:1px;}
+  .topbar-title{font-size:15px;font-weight:700;letter-spacing:.3px;}
+  .topbar-sub{font-size:11px;opacity:.55;}
+  .topbar-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .meta-field{display:flex;align-items:center;gap:4px;font-size:12px;}
+  .meta-field label{opacity:.6;white-space:nowrap;}
+  .meta-field input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:3px;padding:3px 7px;font-size:12px;font-family:inherit;width:110px;}
+  .meta-field input::placeholder{color:rgba(255,255,255,.35);}
+  .meta-field input:focus{outline:none;background:rgba(255,255,255,.18);}
+  .topbar-btns{display:flex;gap:6px;}
+  .btn{border:none;border-radius:3px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .btn-save{background:#2563eb;color:#fff;}
+  .btn-export{background:#475569;color:#fff;}
+  .btn-print{background:#374151;color:#fff;}
+  .btn:hover{opacity:.85;}
+
+  .statstrip{display:flex;gap:0;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .stat{display:flex;align-items:center;gap:7px;padding:8px 16px;border-right:1px solid var(--border);white-space:nowrap;font-size:12px;}
+  .stat-num{font-weight:700;font-size:16px;line-height:1;}
+
+  .toolbar{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .toolbar label{font-size:11px;color:#64748b;font-weight:600;}
+  .toolbar select,.toolbar input[type=text]{border:1px solid var(--border);border-radius:3px;padding:4px 7px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;}
+  .toolbar select:focus,.toolbar input:focus{border-color:#2563eb;}
+  .filter-group{display:flex;align-items:center;gap:4px;}
+  .btn-clear{background:#f1f5f9;color:#475569;border:1px solid var(--border);border-radius:3px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .btn-clear:hover{background:#e2e8f0;}
+
+  .wrap{padding:10px 20px 30px;max-width:1900px;margin:0 auto;}
+
+  .sec{background:#fff;border:1px solid var(--border);margin-bottom:8px;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;}
+  .sec-head-left{display:flex;align-items:center;gap:8px;}
+  .sec-head h2{font-size:13px;font-weight:700;color:#fff;}
+  .sec-count{font-size:11px;color:rgba(255,255,255,.65);background:rgba(0,0,0,.18);border-radius:2px;padding:1px 7px;}
+  .sec-pct{font-size:11px;color:rgba(255,255,255,.85);font-weight:700;}
+  .toggle{font-size:11px;color:rgba(255,255,255,.7);transition:transform .2s;}
+  .sec-head.collapsed .toggle{transform:rotate(-90deg);}
+
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{background:#f8fafc;color:#374151;font-weight:700;padding:6px 8px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;}
+  thead th.left{text-align:left;}
+  thead .th-grp{background:#f1f5f9;font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.3px;}
+  tbody td{padding:5px 7px;border:1px solid #e5e7eb;vertical-align:middle;}
+  tbody tr:hover{background:#f9fafb;}
+  tbody tr.row-delay{background:#fef2f2;}
+  tbody tr.row-delay:hover{background:#fee2e2;}
+  tbody tr.row-done td{color:#6b7280;}
+
+  .c-no{width:28px;text-align:center;color:#9ca3af;font-size:11px;}
+  .c-item{min-width:120px;}
+  .c-bldg{width:44px;text-align:center;}
+  .c-status{width:68px;text-align:center;}
+  .c-date{width:82px;text-align:center;font-size:11px;}
+  .c-pct{width:105px;}
+  .c-mp{width:58px;text-align:center;}
+  .c-diff{width:62px;text-align:center;}
+  .c-text{min-width:120px;}
+  .c-note{min-width:110px;}
+
+  .badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .badge:hover{opacity:.75;}
+  .b-done{background:#d1fae5;color:#065f46;}
+  .b-ing{background:#dbeafe;color:#1e40af;}
+  .b-wait{background:#fef3c7;color:#92400e;}
+  .b-delay{background:#fee2e2;color:#991b1b;}
+  .b-apply{background:#ede9fe;color:#5b21b6;}
+
+  .pct-wrap{display:flex;align-items:center;gap:5px;}
+  .pct-bar{flex:1;height:6px;background:#e5e7eb;border-radius:2px;overflow:hidden;min-width:36px;}
+  .pct-fill{height:100%;border-radius:2px;transition:width .3s;}
+  input.pct-input{width:40px;border:1px solid #d1d5db;border-radius:2px;padding:2px 3px;font-size:11px;text-align:center;font-family:inherit;}
+  input.pct-input:focus{outline:none;border-color:#2563eb;}
+
+  .ed{border:1px solid transparent;border-radius:2px;padding:2px 4px;min-height:20px;cursor:text;line-height:1.45;word-break:break-all;}
+  .ed:hover{border-color:#d1d5db;background:#f9fafb;}
+  .ed:focus{outline:none;border-color:#2563eb;background:#fff;}
+
+  input.mp-in{width:46px;border:1px solid #d1d5db;border-radius:2px;padding:2px 3px;font-size:12px;text-align:center;font-family:inherit;}
+  input.mp-in:focus{outline:none;border-color:#2563eb;}
+
+  input.date-in{width:78px;border:1px solid #d1d5db;border-radius:2px;padding:2px 4px;font-size:11px;text-align:center;font-family:inherit;font-weight:600;color:#1e293b;background:#fff;}
+  input.date-in:focus{outline:none;border-color:#2563eb;background:#eff6ff;}
+  input.date-in.modified{background:#fefce8;border-color:#d97706;color:#92400e;}
+
+  .btag{display:inline-block;background:#e0f2fe;color:#075985;border-radius:2px;padding:1px 5px;font-size:11px;font-weight:600;}
+  .item-name{font-weight:600;color:#111827;}
+  .item-sub{font-size:10px;color:#9ca3af;margin-top:1px;}
+  .issue-red{color:#dc2626;}
+
+  .diff-pos{color:#15803d;font-weight:700;}
+  .diff-neg{color:#dc2626;font-weight:700;}
+  .diff-zero{color:#9ca3af;}
+
+  #toast{position:fixed;bottom:20px;right:20px;background:#1e3a5f;color:#fff;padding:9px 16px;border-radius:3px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 3px 10px rgba(0,0,0,.2);transition:opacity .3s;opacity:0;pointer-events:none;}
+
+  @media print{
+    .topbar .btn,.toolbar,.statstrip{display:none!important;}
+    .topbar{position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-head,.badge,.pct-fill,tbody tr.row-delay,tbody tr.row-done{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-body{display:block!important;}
+    body{background:#fff;font-size:10px;}
+    .wrap{padding:4px 6px;}
+    .sec{margin-bottom:4px;}
+    table{font-size:9px;}
+    thead th,tbody td{padding:2px 4px;}
+  }
+</style>
 </head>
 <body>
-    <div class="auto-sync-indicator" id="syncIndicator">
-        🔄 自動同步中... <span id="nextUpdateIn">30</span>s
-    </div>
 
-    <div class="container">
-        <h1>亞灣工務所金流分析系統</h1>
-        <div class="update-timestamp">
-            資料來源: 各期計價明細 | 最後更新: <span id="lastUpdate">載入中...</span>
-        </div>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">前鎮亞灣智慧公宅（第一期）新建統包工程</div>
+    <div class="topbar-sub">工程進度會議追蹤表</div>
+  </div>
+  <div class="topbar-meta">
+    <div class="meta-field"><label>會議日期</label><input type="date" id="mtgDate" value="2026-09-03"></div>
+    <div class="meta-field"><label>第</label><input type="text" id="mtgWeek" placeholder="次" style="width:44px"><label>次會議</label></div>
+    <div class="meta-field"><label>主持人</label><input type="text" id="mtgHost" placeholder="姓名" style="width:70px"></div>
+    <div class="meta-field"><label>記錄</label><input type="text" id="mtgRec" placeholder="姓名" style="width:70px"></div>
+  </div>
+  <div class="topbar-btns">
+    <button class="btn btn-save" onclick="saveData()">儲存</button>
+    <button class="btn btn-export" onclick="exportCSV()">匯出 CSV</button>
+    <button class="btn btn-print" onclick="window.print()">列印</button>
+  </div>
+</div>
 
-        <div class="summary-cards">
-            <div class="summary-card income">
-                <h3>計價收入(含預付款)</h3>
-                <div class="amount" id="totalActual">載入中...</div>
-            </div>
-            <div class="summary-card expense">
-                <h3>工地廠商請款及其他雜項</h3>
-                <div class="amount" id="totalExpense">載入中...</div>
-            </div>
-            <div class="summary-card">
-                <h3>截止至114/10月預算金額</h3>
-                <div class="amount" id="totalPlanned">載入中...</div>
-            </div>
-            <div class="summary-card profit">
-                <h3>淨收益=計價收入(含預付款)-工地廠商請款及其他雜項</h3>
-                <div class="amount" id="netProfit">載入中...</div>
-            </div>
-            <div class="summary-card">
-                <h3>收支差異=計價收入(含預付款)-截止至114/10月預算金額</h3>
-                <div class="amount" id="totalDifference">載入中...</div>
-            </div>
-            <div class="summary-card">
-                <h3>執行率=(實際收入÷預算金額)×100%</h3>
-                <div class="amount" id="executionRate">載入中...</div>
-            </div>
-        </div>
+<div class="statstrip" id="statstrip"></div>
 
-        <div class="controls">
-            <div class="control-group">
-                <label>圖表類型選擇:</label>
-                <select id="chartType" onchange="updateChart()">
-                    <option value="bar">柱狀圖</option>
-                    <option value="line">線圖</option>
-                    <option value="radar">雷達圖</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>顯示數據:</label>
-                <input type="checkbox" id="showActual" checked onchange="updateChart()"> 實際收入
-                <input type="checkbox" id="showExpense" checked onchange="updateChart()"> 實際支出
-                <input type="checkbox" id="showPlanned" checked onchange="updateChart()"> 預算金額
-                <input type="checkbox" id="showDifference" onchange="updateChart()"> 差異
-                <input type="checkbox" id="showNetProfit" onchange="updateChart()"> 淨收益
-            </div>
-            <div class="control-group">
-                <button onclick="manualSync()">手動同步</button>
-                <button onclick="exportChart()">匯出圖表</button>
-                <button onclick="exportData()">匯出數據</button>
-            </div>
-        </div>
+<div class="toolbar">
+  <div class="filter-group"><label>類別：</label>
+    <select id="f-cat" onchange="applyFilter()">
+      <option value="">全部</option>
+      <option>假設工程</option><option>室內裝修</option><option>外牆</option>
+      <option>景觀</option><option>地下室</option><option>機電</option><option>外單位檢查</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>狀態：</label>
+    <select id="f-status" onchange="applyFilter()">
+      <option value="">全部</option>
+      <option>已完成</option><option>進行中</option><option>待施工</option><option>延遲</option><option>待申請</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>棟別：</label>
+    <select id="f-bldg" onchange="applyFilter()">
+      <option value="">全部</option>
+      <option>東</option><option>西</option><option>南</option><option>北</option><option>全棟</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>搜尋：</label>
+    <input type="text" id="f-search" placeholder="工項名稱" style="width:130px" oninput="applyFilter()">
+  </div>
+  <button class="btn-clear" onclick="resetFilter()">清除</button>
+</div>
 
-        <div class="chart-container">
-            <canvas id="progressChart"></canvas>
-        </div>
+<div class="wrap" id="mainWrap"></div>
+<div id="toast"></div>
 
-        <div class="chart-container">
-            <canvas id="differenceChart"></canvas>
-        </div>
+<script>
+// ══════════════════════════════════════════
+//  DATA
+//  欄位說明：
+//  planMP    = 原預計出工數（基準值，不輕易改動）
+//  actualMP  = 本日出工數
+//  tomorrowMP= 明日預計出工數
+//  todayWork = 本日施工內容
+//  tomorrowWork = 明天預定工作
+//  issue     = 延遲原因／對策
+//  abnormal  = 異常原因說明
+// ══════════════════════════════════════════
+const CATS = [
+  { name:"假設工程", color:"#1e3a8a", items:[
+    {item:"施工架",   bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:60,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"",  tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
+    {item:"施工架",   bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"施工電梯", bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:50,  status:"進行中", planMP:2,  actualMP:0,  tomorrowMP:2,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"塔吊",     bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:50,  status:"進行中", planMP:2,  actualMP:0,  tomorrowMP:2,  todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+  ]},
+  { name:"室內裝修", color:"#4c1d95", items:[
+    {item:"輕隔間",         bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:10, actualMP:10, tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:100, status:"已完成", planMP:10, actualMP:10, tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:60,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"", tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
+    {item:"輕隔間",         bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"油漆",           bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
+    {item:"油漆",           bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
+    {item:"油漆",           bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:85,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
+    {item:"油漆",           bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
+    {item:"戶內地磚+壁磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:20,  status:"進行中", planMP:12, actualMP:0,  tomorrowMP:12, todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"走廊+陽台地磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"戶內暗架天花板", bldg:"全棟",planEnd:"09/24", actualEnd:"",      pct:70,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"09/05開始施作", tomorrowWork:"09/24完成", issue:"", abnormal:"", note:"09/05開始-09/24完成"},
+    {item:"1F/2F戶內天花板",bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"走廊造型天花板", bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"14F-11F分段完成"},
+    {item:"廚具",           bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:5,   status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"衛浴設備",       bldg:"全棟",planEnd:"12/30", actualEnd:"",      pct:5,   status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+  ]},
+  { name:"外牆", color:"#1e4e79", items:[
+    {item:"格柵",       bldg:"東",  planEnd:"09/11", actualEnd:"09/11", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"西",  planEnd:"09/11", actualEnd:"09/11", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"南",  planEnd:"09/16", actualEnd:"09/16", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"格柵",       bldg:"北",  planEnd:"08/23", actualEnd:"08/23", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"石材",       bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:80,  status:"進行中", planMP:10, actualMP:0,  tomorrowMP:10, todayWork:"", tomorrowWork:"09/25完成", issue:"", abnormal:"", note:""},
+    {item:"塗料",       bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
+    {item:"塗料",       bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:8,  actualMP:8,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
+    {item:"塗料",       bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:85,  status:"進行中", planMP:8,  actualMP:0,  tomorrowMP:8,  todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
+    {item:"塗料",       bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
+    {item:"太陽能板R1F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"太陽能板R2F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"屋頂防水",   bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:70,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+  ]},
+  { name:"景觀", color:"#14532d", items:[
+    {item:"1F景觀防水",  bldg:"全棟",planEnd:"完成",  actualEnd:"完成",  pct:100, status:"已完成", planMP:0,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀防水",  bldg:"全棟",planEnd:"10/01", actualEnd:"",      pct:40,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"3F景觀防水",  bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:50,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"延至09/15", abnormal:"", note:"08/30延至09/15"},
+    {item:"屋頂景觀花台",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:70,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F景觀花台",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:50,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:20,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:20,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"屋頂景觀鋪面",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F景觀鋪面",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:40,  status:"進行中", planMP:6,  actualMP:0,  tomorrowMP:6,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:15,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"屋頂植栽",    bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:60,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+    {item:"3F植栽",      bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:40,  status:"進行中", planMP:4,  actualMP:0,  tomorrowMP:4,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"2F植栽",      bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:20,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"1F植栽",      bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:10,  status:"待施工", planMP:4,  actualMP:0,  tomorrowMP:0,  todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+  ]},
+  { name:"地下室", color:"#451a03", items:[
+    {item:"EPOXY(含標線)B2",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:5, status:"待施工",planMP:4,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
+    {item:"EPOXY(含標線)B1",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:5, status:"待施工",planMP:4,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
+  ]},
+  { name:"機電", color:"#422006", items:[
+    {item:"給水(戶內)",   bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:70, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"給水(戶外)",   bldg:"全棟",planEnd:"09/04", actualEnd:"09/04", pct:100,status:"已完成", planMP:0, actualMP:0, tomorrowMP:0, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"排水",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:60, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
+    {item:"消防",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:65, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"14F-11F骨架完成",tomorrowWork:"10F-3F封版",issue:"", abnormal:"", note:"14F-11F 08/28-09/05完成骨架"},
+    {item:"電力",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:50, status:"進行中", planMP:8, actualMP:0, tomorrowMP:8, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"弱電監控",     bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:40, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+    {item:"空調冷氣",     bldg:"全棟",planEnd:"11/15", actualEnd:"",      pct:30, status:"進行中", planMP:6, actualMP:0, tomorrowMP:6, todayWork:"",               tomorrowWork:"",          issue:"冷氣機品牌順序調整，專管審查中", abnormal:"", note:"以專管單位發文至機關後起算"},
+    {item:"電梯使照取得", bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:20, status:"待施工", planMP:4, actualMP:0, tomorrowMP:0, todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"全部電梯許可證取得後補件"},
+  ]},
+  { name:"外單位檢查", color:"#7f1d1d", items:[
+    {item:"消防檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"電信檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"雨汙水檢查", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"無障礙勘驗", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
+    {item:"使照申請",   bldg:"—",planEnd:"10/30",     actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"預計申請10/01，取得10/30"},
+    {item:"用電申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
+    {item:"用水申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
+    {item:"完工",       bldg:"—",planEnd:"2027/02/10",actualEnd:"",pct:0,status:"待施工",planMP:0,actualMP:0,tomorrowMP:0,todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"最終完工目標"},
+  ]},
+];
 
-        <div class="chart-container">
-            <canvas id="profitChart"></canvas>
-        </div>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let STATE={};
+const SK=(ci,ii)=>`${ci}_${ii}`;
+const SL=["已完成","進行中","待施工","延遲","待申請"];
+const SC={"已完成":"b-done","進行中":"b-ing","待施工":"b-wait","延遲":"b-delay","待申請":"b-apply"};
 
-        <div class="data-table">
-            <h3>💰 詳細金流表 <span id="dataCount">(載入中...)</span></h3>
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th>期別</th>
-                        <th>實際收入 (元)</th>
-                        <th>實際支出 (元)</th>
-                        <th>預算金額 (元)</th>
-                        <th>淨收益 (元)</th>
-                        <th>收支差異 (元)</th>
-                        <th>執行率</th>
-                        <th>狀態</th>
-                        <th>趨勢</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                </tbody>
-            </table>
-        </div>
+function loadState(){
+  try{const r=localStorage.getItem('ybay_s');if(r)STATE=JSON.parse(r);}catch(e){}
+  try{const m=localStorage.getItem('ybay_m');if(m){const d=JSON.parse(m);
+    if(d.date)document.getElementById('mtgDate').value=d.date;
+    if(d.week)document.getElementById('mtgWeek').value=d.week;
+    if(d.host)document.getElementById('mtgHost').value=d.host;
+    if(d.rec) document.getElementById('mtgRec').value=d.rec;
+  }}catch(e){}
+}
+function saveData(){
+  localStorage.setItem('ybay_s',JSON.stringify(STATE));
+  localStorage.setItem('ybay_m',JSON.stringify({
+    date:document.getElementById('mtgDate').value,
+    week:document.getElementById('mtgWeek').value,
+    host:document.getElementById('mtgHost').value,
+    rec: document.getElementById('mtgRec').value,
+  }));
+  showToast('已儲存');
+}
+function gv(ci,ii,k){const s=STATE[SK(ci,ii)];return(s&&s[k]!==undefined)?s[k]:CATS[ci].items[ii][k];}
+function sv(ci,ii,k,v){if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};STATE[SK(ci,ii)][k]=v;}
 
-        <div class="sync-log">
-            <h4>📋 同步記錄</h4>
-            <div id="syncLogContent">
-                <div class="log-entry log-info">系統啟動中...</div>
-            </div>
-        </div>
-    </div>
-    <script>
-    // 配置設定
-    const CONFIG = {
-        SHEETS_ID: '1jpcMCUcpveh7-doxSdHNP6wK5NuxsMvc3-A5Il42Enk',
-        SYNC_INTERVAL: 30000,
-        MAX_LOG_ENTRIES: 20
-    };
-
-    // 全域變數
-    let projectData = [];
-    let previousData = [];
-    let progressChart, differenceChart, profitChart;
-    let syncInterval = null;
-    let countdownInterval = null;
-    let nextUpdateCountdown = 30;
-
-    const SHEETS_CSV_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEETS_ID}/export?format=csv&gid=0`;
-
-    // 格式化函數
-    function formatCurrency(amount) {
-    return new Intl.NumberFormat('zh-TW', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount) + ' 元';
+// 修改預計完成日期 → 同步更新 CATS 資料（讓匯出/顯示一致）
+function updatePlanEnd(ci,ii,val,inputEl){
+  const trimmed=val.trim();
+  sv(ci,ii,'planEnd',trimmed);
+  // 標記已修改
+  if(trimmed !== CATS[ci].items[ii].planEnd){
+    inputEl.classList.add('modified');
+  } else {
+    inputEl.classList.remove('modified');
+  }
+  updateStats();
+  updSecPct(ci);
 }
 
-    function formatNumber(number) {
-        return new Intl.NumberFormat('zh-TW').format(number);
+function pc(p){return p===100?"#15803d":p>=70?"#1d4ed8":p>=40?"#d97706":"#dc2626";}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderAll(){
+  const wrap=document.getElementById('mainWrap');
+  wrap.innerHTML='';
+  CATS.forEach((cat,ci)=>{
+    const sec=document.createElement('div');
+    sec.className='sec';
+    sec.dataset.cat=cat.name;
+    sec.innerHTML=`
+      <div class="sec-head" style="background:${cat.color};border-left:4px solid ${cat.color}" onclick="toggleSec(this)">
+        <div class="sec-head-left">
+          <h2>${cat.name}</h2>
+          <span class="sec-count">${cat.items.length} 項</span>
+          <span class="sec-pct" id="sp_${ci}"></span>
+        </div>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr class="th-grp">
+                <th colspan="4">基本資訊</th>
+                <th colspan="2">時程</th>
+                <th colspan="2">進度</th>
+                <th colspan="3" style="border-left:2px solid #d1d5db">人力管制</th>
+                <th colspan="4" style="border-left:2px solid #d1d5db">會議紀錄</th>
+                <th>備註</th>
+              </tr>
+              <tr>
+                <th class="c-no">#</th>
+                <th class="left c-item">工項名稱</th>
+                <th class="c-bldg">棟別</th>
+                <th class="c-status">狀態</th>
+                <th class="c-date">預計完成</th>
+                <th class="c-date">實際完成</th>
+                <th class="c-pct">完成率</th>
+                <th class="c-date" style="width:56px">落後</th>
+                <th class="c-mp" style="border-left:2px solid #d1d5db">本日<br>出工數</th>
+                <th class="c-mp">明日預計<br>出工數</th>
+                <th class="c-diff">與原預計<br>差異</th>
+                <th class="c-text" style="border-left:2px solid #d1d5db">本日施工內容</th>
+                <th class="c-text">明天預定工作</th>
+                <th class="c-text">延遲原因／對策</th>
+                <th class="c-text">異常原因說明</th>
+                <th class="c-note">備註說明</th>
+              </tr>
+            </thead>
+            <tbody id="tb_${ci}"></tbody>
+          </table>
+        </div>
+      </div>`;
+    wrap.appendChild(sec);
+    renderTbody(ci);
+  });
+  updateStats();
+}
+
+function renderTbody(ci){
+  const tbody=document.getElementById(`tb_${ci}`);
+  tbody.innerHTML='';
+  CATS[ci].items.forEach((row,ii)=>{
+    const pct      = gv(ci,ii,'pct');
+    const status   = gv(ci,ii,'status');
+    const planMP   = +gv(ci,ii,'planMP')   || 0;
+    const actualMP = +gv(ci,ii,'actualMP') || 0;
+    const tomorrowMP = +gv(ci,ii,'tomorrowMP') || 0;
+    const todayWork  = gv(ci,ii,'todayWork');
+    const tomorrowWork = gv(ci,ii,'tomorrowWork');
+    const iss      = gv(ci,ii,'issue');
+    const abnormal = gv(ci,ii,'abnormal');
+    const note     = gv(ci,ii,'note');
+    const aEnd     = gv(ci,ii,'actualEnd');
+    const planEnd  = gv(ci,ii,'planEnd');
+    const origPlanEnd = CATS[ci].items[ii].planEnd;
+    const isModified = planEnd !== origPlanEnd;
+
+    const isDelay=status==='延遲', isDone=status==='已完成';
+
+    // 差異計算：本日出工數 - 原預計出工數
+    const diff = actualMP - planMP;
+    let diffHtml='<span class="diff-zero">—</span>';
+    if(planMP>0 || actualMP>0){
+      if(diff>0) diffHtml=`<span class="diff-pos">+${diff}</span>`;
+      else if(diff<0) diffHtml=`<span class="diff-neg">${diff}</span>`;
+      else diffHtml=`<span class="diff-zero">0</span>`;
     }
 
-    // 系統初始化
-    async function initSystem() {
-        addLogEntry('🚀 系統初始化中...', 'info');
-        
-        try {
-            await initCharts();
-            await loadSampleData();
-            startAutoSync();
-            startCountdown();
-            
-            addLogEntry('✅ 系統初始化完成，自動同步已啟動', 'success');
-        } catch (error) {
-            addLogEntry('❌ 系統初始化失敗: ' + error.message, 'error');
-        }
-    }
+    const behindHtml=isDelay?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>':'<span style="color:#9ca3af;font-size:11px">—</span>';
 
-    // 載入示例數據
-    function loadSampleData() {
-        projectData = [
-            {
-                name: '亞灣區開發案A',
-                actual: 15000000,
-                expense: 12000000,
-                planned: 14000000,
-                difference: 1000000,
-                netProfit: 3000000,
-                executionRate: 107.14,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案B',
-                actual: 8500000,
-                expense: 7200000,
-                planned: 9000000,
-                difference: -500000,
-                netProfit: 1300000,
-                executionRate: 94.44,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案C',
-                actual: 22000000,
-                expense: 18500000,
-                planned: 20000000,
-                difference: 2000000,
-                netProfit: 3500000,
-                executionRate: 110.00,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案D',
-                actual: 6800000,
-                expense: 7500000,
-                planned: 7500000,
-                difference: -700000,
-                netProfit: -700000,
-                executionRate: 90.67,
-                lastUpdate: new Date().toLocaleString()
-            },
-            {
-                name: '亞灣區開發案E',
-                actual: 12300000,
-                expense: 9800000,
-                planned: 11000000,
-                difference: 1300000,
-                netProfit: 2500000,
-                executionRate: 111.82,
-                lastUpdate: new Date().toLocaleString()
-            }
-        ];
-        
-        updateChart();
-        updateTable();
-        updateSummaryCards();
-        updateLastUpdateTime();
-        
-        addLogEntry('✅ 示例數據載入完成', 'success');
-    }
+    const tr=document.createElement('tr');
+    if(isDelay)tr.className='row-delay';
+    else if(isDone)tr.className='row-done';
+    tr.dataset.cat=CATS[ci].name;tr.dataset.bldg=row.bldg;tr.dataset.status=status;tr.dataset.item=row.item;
 
-    // 圖表初始化
-    async function initCharts() {
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 1000, easing: 'easeInOutQuart' },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: '金額 (新台幣)' },
-                    ticks: { callback: function(value) { return formatCurrency(value); } }
-                }
-            }
-        };
+    tr.innerHTML=`
+      <td class="c-no">${ii+1}</td>
+      <td class="c-item">
+        <div class="item-name">${row.item}</div>
+        ${row.note?`<div class="item-sub">${row.note}</div>`:''}
+      </td>
+      <td class="c-bldg"><span class="btag">${row.bldg}</span></td>
+      <td class="c-status"><span class="badge ${SC[status]}" onclick="cycleStatus(${ci},${ii},this)">${status}</span></td>
+      <td class="c-date">
+        <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}"
+          title="可直接修改預計完成日期"
+          onblur="updatePlanEnd(${ci},${ii},this.value,this)"
+          onkeydown="if(event.key==='Enter'){this.blur();}">
+      </td>
+      <td class="c-date">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'actualEnd',this.innerText.trim());updateStats();"
+        >${aEnd}</div>
+      </td>
+      <td class="c-pct">
+        <div class="pct-wrap">
+          <div class="pct-bar"><div class="pct-fill" id="pf_${ci}_${ii}" style="width:${pct}%;background:${pc(pct)}"></div></div>
+          <input class="pct-input" type="number" min="0" max="100" value="${pct}" oninput="updPct(${ci},${ii},this.value)">
+        </div>
+      </td>
+      <td>${behindHtml}</td>
+      <td style="border-left:2px solid #e5e7eb">
+        <input class="mp-in" type="number" min="0" value="${actualMP}"
+          onchange="sv(${ci},${ii},'actualMP',+this.value);updDiff(${ci},${ii});updateStats();">
+      </td>
+      <td>
+        <input class="mp-in" type="number" min="0" value="${tomorrowMP}"
+          onchange="sv(${ci},${ii},'tomorrowMP',+this.value);updateStats();">
+      </td>
+      <td id="diff_${ci}_${ii}">${diffHtml}</td>
+      <td style="border-left:2px solid #e5e7eb">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'todayWork',this.innerText.trim());"
+        >${todayWork}</div>
+      </td>
+      <td>
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'tomorrowWork',this.innerText.trim());"
+        >${tomorrowWork}</div>
+      </td>
+      <td>
+        <div class="ed issue-red" contenteditable="true"
+          onblur="sv(${ci},${ii},'issue',this.innerText.trim());"
+        >${iss}</div>
+      </td>
+      <td>
+        <div class="ed" contenteditable="true"
+          style="${abnormal?'color:#b45309;':''}"
+          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());this.style.color=this.innerText.trim()?'#b45309':'';"
+        >${abnormal}</div>
+      </td>
+      <td>
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'note',this.innerText.trim());"
+        >${note}</div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  updSecPct(ci);
+}
 
-        const ctx1 = document.getElementById('progressChart').getContext('2d');
-        progressChart = new Chart(ctx1, {
-            type: 'bar',
-            data: { labels: [], datasets: [] },
-            options: {
-                ...chartOptions,
-                plugins: {
-                    title: { display: true, text: '💰 金流比較 - 收入 vs 支出 vs 預算', font: { size: 16 } },
-                    legend: { display: true, position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
-                            }
-                        }
-                    }
-                }
-            }
-        });
+function updDiff(ci,ii){
+  const planMP  = +gv(ci,ii,'planMP')   || 0;
+  const actualMP= +gv(ci,ii,'actualMP') || 0;
+  const diff=actualMP-planMP;
+  const el=document.getElementById(`diff_${ci}_${ii}`);
+  if(!el)return;
+  if(planMP===0&&actualMP===0){el.innerHTML='<span class="diff-zero">—</span>';return;}
+  if(diff>0)      el.innerHTML=`<span class="diff-pos">+${diff}</span>`;
+  else if(diff<0) el.innerHTML=`<span class="diff-neg">${diff}</span>`;
+  else            el.innerHTML=`<span class="diff-zero">0</span>`;
+}
 
-        const ctx2 = document.getElementById('differenceChart').getContext('2d');
-        differenceChart = new Chart(ctx2, {
-            type: 'bar',
-            data: { labels: [], datasets: [] },
-            options: {
-                ...chartOptions,
-                plugins: {
-                    title: { display: true, text: '📊 收支差異分析 (負值=不足，正值=超出)', font: { size: 16 } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return '差異: ' + formatCurrency(context.parsed.y);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        title: { display: true, text: '差異金額 (新台幣)' },
-                        ticks: { callback: function(value) { return formatCurrency(value); } }
-                    }
-                }
-            }
-        });
+function updPct(ci,ii,val){
+  const v=Math.min(100,Math.max(0,+val||0));
+  sv(ci,ii,'pct',v);
+  const f=document.getElementById(`pf_${ci}_${ii}`);
+  if(f){f.style.width=v+'%';f.style.background=pc(v);}
+  updateStats();updSecPct(ci);
+}
 
-        const ctx3 = document.getElementById('profitChart').getContext('2d');
-        profitChart = new Chart(ctx3, {
-            type: 'bar',
-            data: { labels: [], datasets: [] },
-            options: {
-                ...chartOptions,
-                plugins: {
-                    title: { display: true, text: '💰 淨收益分析 (收入 - 支出)', font: { size: 16 } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return '淨收益: ' + formatCurrency(context.parsed.y);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        title: { display: true, text: '淨收益 (新台幣)' },
-                        ticks: { callback: function(value) { return formatCurrency(value); } }
-                    }
-                }
-            }
-        });
-    }
-        // 數據同步功能
-    async function performSync() {
-        try {
-            addLogEntry('🔄 開始從Google Sheets同步數據...', 'info');
-            
-            const response = await fetch(SHEETS_CSV_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const csvText = await response.text();
-            const newData = parseCSV(csvText);
-            
-            if (newData.length === 0) {
-                addLogEntry('⚠️ 未找到有效數據，使用示例數據', 'info');
-                return;
-            }
+function cycleStatus(ci,ii,el){
+  const next=SL[(SL.indexOf(gv(ci,ii,'status'))+1)%SL.length];
+  sv(ci,ii,'status',next);
+  el.className=`badge ${SC[next]}`;el.textContent=next;
+  const tr=el.closest('tr');
+  tr.className=next==='延遲'?'row-delay':next==='已完成'?'row-done':'';
+  tr.dataset.status=next;
+  updateStats();updSecPct(ci);
+}
 
-            const hasChanges = detectChanges(newData);
-            previousData = [...projectData];
-            projectData = newData;
-            
-            updateChart();
-            updateTable();
-            updateSummaryCards();
-            updateLastUpdateTime();
-            
-            const changeInfo = hasChanges ? ` (檢測到 ${hasChanges} 項變更)` : ' (無變更)';
-            addLogEntry(`✅ 同步成功: 載入 ${newData.length} 筆數據${changeInfo}`, 'success');
-            
-        } catch (error) {
-            addLogEntry('❌ 同步失敗: ' + error.message + ' (使用示例數據)', 'error');
-            console.error('同步錯誤:', error);
-        }
-    }
+function updSecPct(ci){
+  const items=CATS[ci].items;
+  const avg=Math.round(items.reduce((s,_,ii)=>s+(+gv(ci,ii,'pct')||0),0)/items.length);
+  const el=document.getElementById(`sp_${ci}`);
+  if(el)el.textContent=`${avg}%`;
+}
 
-    // CSV 解析
-    function parseCSV(csvText) {
-        const lines = csvText.split('\n');
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-            
-            const columns = parseCSVLine(line);
-            if (columns.length >= 4) {
-                const name = columns[0].replace(/"/g, '').trim();
-                const actual = parseFloat(columns[1]) || 0;
-                const expense = parseFloat(columns[2]) || 0;
-                const planned = parseFloat(columns[3]) || 0;
-                const difference = actual - planned;
-                const netProfit = actual - expense;
-                
-                if (name && name !== '') {
-                    data.push({
-                        name: name,
-                        actual: actual,
-                        expense: expense,
-                        planned: planned,
-                        difference: difference,
-                        netProfit: netProfit,
-                        executionRate: planned > 0 ? (actual / planned * 100) : 0,
-                        lastUpdate: new Date().toLocaleString()
-                    });
-                }
-            }
-        }
-        
-        return data;
-    }
+function toggleSec(head){
+  head.classList.toggle('collapsed');
+  const b=head.nextElementSibling;
+  b.style.display=b.style.display==='none'?'':'none';
+}
 
-    function parseCSVLine(line) {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                result.push(current);
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        
-        result.push(current);
-        return result;
-    }
+// ══════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════
+function updateStats(){
+  let done=0,ing=0,wait=0,delay=0,apply=0,aMP=0,tMP=0;
+  CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
+    const s=gv(ci,ii,'status');
+    if(s==='已完成')done++;else if(s==='進行中')ing++;else if(s==='待施工')wait++;else if(s==='延遲')delay++;else if(s==='待申請')apply++;
+    aMP+=+gv(ci,ii,'actualMP')||0;
+    tMP+=+gv(ci,ii,'tomorrowMP')||0;
+  }));
+  const total=done+ing+wait+delay+apply;
+  document.getElementById('statstrip').innerHTML=`
+    <div class="stat"><span class="stat-num" style="color:#065f46">${done}</span>&nbsp;已完成</div>
+    <div class="stat"><span class="stat-num" style="color:#1e40af">${ing}</span>&nbsp;進行中</div>
+    <div class="stat"><span class="stat-num" style="color:#92400e">${wait}</span>&nbsp;待施工</div>
+    <div class="stat"><span class="stat-num" style="color:#991b1b">${delay}</span>&nbsp;延遲</div>
+    <div class="stat"><span class="stat-num" style="color:#5b21b6">${apply}</span>&nbsp;待申請</div>
+    <div class="stat" style="margin-left:8px;border-left:2px solid #d1d5db;padding-left:16px;">本日出工&nbsp;<span class="stat-num" style="color:#1e3a5f">${aMP}</span>&nbsp;人</div>
+    <div class="stat">明日預計出工&nbsp;<span class="stat-num" style="color:#15803d">${tMP}</span>&nbsp;人</div>
+    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">整體完成率&nbsp;<span class="stat-num" style="color:#1e3a5f">${Math.round(done/total*100)}%</span>&nbsp;<span style="font-size:11px;color:#9ca3af">(${done}/${total})</span></div>`;
+}
 
-    // 變更檢測
-    function detectChanges(newData) {
-        if (previousData.length === 0) return 0;
-        
-        let changes = 0;
-        newData.forEach(newItem => {
-            const oldItem = previousData.find(item => item.name === newItem.name);
-            if (!oldItem) {
-                changes++;
-            } else if (
-                oldItem.actual !== newItem.actual || 
-                oldItem.expense !== newItem.expense ||
-                oldItem.planned !== newItem.planned
-            ) {
-                changes++;
-            }
-        });
-        
-        return changes;
-    }
-
-    // 更新摘要卡片
-    function updateSummaryCards() {
-        const totalActual = projectData.reduce((sum, item) => sum + item.actual, 0);
-        const totalExpense = projectData.reduce((sum, item) => sum + item.expense, 0);
-        const totalPlanned = projectData.reduce((sum, item) => sum + item.planned, 0);
-        const totalDifference = totalActual - totalPlanned;
-        const netProfit = totalActual - totalExpense;
-        const executionRate = totalPlanned > 0 ? (totalActual / totalPlanned * 100) : 0;
-
-        document.getElementById('totalActual').textContent = formatCurrency(totalActual);
-        document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
-        document.getElementById('totalPlanned').textContent = formatCurrency(totalPlanned);
-        document.getElementById('totalDifference').textContent = formatCurrency(totalDifference);
-        document.getElementById('netProfit').textContent = formatCurrency(netProfit);
-        document.getElementById('executionRate').textContent = executionRate.toFixed(1) + '%';
-    }
-
-    // 自動同步控制
-    function startAutoSync() {
-        if (syncInterval) clearInterval(syncInterval);
-        syncInterval = setInterval(performSync, CONFIG.SYNC_INTERVAL);
-        performSync(); // 立即執行一次
-    }
-
-    function stopAutoSync() {
-        if (syncInterval) {
-            clearInterval(syncInterval);
-            syncInterval = null;
-        }
-    }
-
-    // 倒數計時器
-    function startCountdown() {
-        if (countdownInterval) clearInterval(countdownInterval);
-        
-        countdownInterval = setInterval(() => {
-            nextUpdateCountdown--;
-            document.getElementById('nextUpdateIn').textContent = nextUpdateCountdown;
-            
-            if (nextUpdateCountdown <= 0) {
-                nextUpdateCountdown = 60; // 重置倒數
-            }
-        }, 1000);
-    }
-
-    // 手動同步
-    function manualSync() {
-        nextUpdateCountdown = 300; // 重置倒數
-        performSync();
-        addLogEntry('🔄 手動同步已觸發', 'info');
-    }
-
-    // 日誌管理
-    function addLogEntry(message, type = 'info') {
-        const logContent = document.getElementById('syncLogContent');
-        const entry = document.createElement('div');
-        entry.className = `log-entry log-${type}`;
-        entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
-        
-        logContent.insertBefore(entry, logContent.firstChild);
-        
-        // 限制日誌條目數量
-        const entries = logContent.querySelectorAll('.log-entry');
-        if (entries.length > CONFIG.MAX_LOG_ENTRIES) {
-            logContent.removeChild(entries[entries.length - 1]);
-        }
-    }
-
-    // 更新最後更新時間
-    function updateLastUpdateTime() {
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
-    }
-        // 圖表更新功能
-    function updateChart() {
-        const chartType = document.getElementById('chartType').value;
-        const showActual = document.getElementById('showActual').checked;
-        const showExpense = document.getElementById('showExpense').checked;
-        const showPlanned = document.getElementById('showPlanned').checked;
-        const showDifference = document.getElementById('showDifference').checked;
-        const showNetProfit = document.getElementById('showNetProfit').checked;
-
-        const labels = projectData.map(item => item.name);
-        const datasets = [];
-
-        // 主要圖表數據集
-        if (showActual) {
-            datasets.push({
-                label: '實際收入',
-                data: projectData.map(item => item.actual),
-                backgroundColor: 'rgba(40, 167, 69, 0.8)',
-                borderColor: 'rgba(40, 167, 69, 1)',
-                borderWidth: 2
-            });
-        }
-
-        if (showExpense) {
-            datasets.push({
-                label: '實際支出',
-                data: projectData.map(item => item.expense),
-                backgroundColor: 'rgba(220, 53, 69, 0.8)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 2
-            });
-        }
-
-        if (showPlanned) {
-            datasets.push({
-                label: '預算金額',
-                data: projectData.map(item => item.planned),
-                backgroundColor: 'rgba(0, 123, 255, 0.8)',
-                borderColor: 'rgba(0, 123, 255, 1)',
-                borderWidth: 2
-            });
-        }
-
-        if (showNetProfit) {
-            datasets.push({
-                label: '淨收益',
-                data: projectData.map(item => item.netProfit),
-                backgroundColor: 'rgba(111, 66, 193, 0.8)',
-                borderColor: 'rgba(111, 66, 193, 1)',
-                borderWidth: 2
-            });
-        }
-
-        // 更新主要圖表
-        progressChart.data.labels = labels;
-        progressChart.data.datasets = datasets;
-        progressChart.config.type = chartType;
-        progressChart.update();
-
-        // 更新差異圖表
-        const differenceData = projectData.map(item => item.difference);
-        const differenceColors = differenceData.map(value => 
-            value >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
-        );
-
-        differenceChart.data.labels = labels;
-        differenceChart.data.datasets = [{
-            label: '收支差異',
-            data: differenceData,
-            backgroundColor: differenceColors,
-            borderColor: differenceColors.map(color => color.replace('0.8', '1')),
-            borderWidth: 2
-        }];
-        differenceChart.update();
-
-        // 更新淨收益圖表
-        const profitData = projectData.map(item => item.netProfit);
-        const profitColors = profitData.map(value => 
-            value >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
-        );
-
-        profitChart.data.labels = labels;
-        profitChart.data.datasets = [{
-            label: '淨收益',
-            data: profitData,
-            backgroundColor: profitColors,
-            borderColor: profitColors.map(color => color.replace('0.8', '1')),
-            borderWidth: 2
-        }];
-        profitChart.update();
-    }
-
-    // 表格更新功能
-    function updateTable() {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
-
-        projectData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            
-            // 狀態判斷
-            let status, statusClass;
-            if (item.executionRate >= 105) {
-                status = '超前';
-                statusClass = 'status-ahead';
-            } else if (item.executionRate >= 95) {
-                status = '正常';
-                statusClass = 'status-normal';
-            } else {
-                status = '落後';
-                statusClass = 'status-behind';
-            }
-
-            // 趨勢分析
-            let trend = '➡️';
-            if (previousData.length > 0) {
-                const prevItem = previousData.find(prev => prev.name === item.name);
-                if (prevItem) {
-                    if (item.actual > prevItem.actual) trend = '📈';
-                    else if (item.actual < prevItem.actual) trend = '📉';
-                }
-            }
-
-            row.innerHTML = `
-                <td><strong>${item.name}</strong></td>
-                <td class="positive">${formatCurrency(item.actual)}</td>
-                <td class="negative">${formatCurrency(item.expense)}</td>
-                <td>${formatCurrency(item.planned)}</td>
-                <td class="${item.netProfit >= 0 ? 'positive' : 'negative'}">${formatCurrency(item.netProfit)}</td>
-                <td class="${item.difference >= 0 ? 'positive' : 'negative'}">${formatCurrency(item.difference)}</td>
-                <td>${item.executionRate.toFixed(1)}%</td>
-                <td><span class="status-indicator ${statusClass}">${status}</span></td>
-                <td>${trend}</td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-
-        document.getElementById('dataCount').textContent = `(${projectData.length} 個項目)`;
-    }
-
-    // 匯出功能
-    function exportChart() {
-        try {
-            const canvas = document.getElementById('progressChart');
-            const url = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = `亞灣工務所金流分析_${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = url;
-            link.click();
-            
-            addLogEntry('📊 圖表匯出成功', 'success');
-        } catch (error) {
-            addLogEntry('❌ 圖表匯出失敗: ' + error.message, 'error');
-        }
-    }
-
-    function exportData() {
-        try {
-            let csvContent = "項目名稱,實際收入,實際支出,預算金額,淨收益,收支差異,執行率,最後更新\n";
-            
-            projectData.forEach(item => {
-                csvContent += `"${item.name}",${item.actual},${item.expense},${item.planned},${item.netProfit},${item.difference},${item.executionRate.toFixed(2)},${item.lastUpdate}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `亞灣工務所金流數據_${new Date().toISOString().slice(0, 10)}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            addLogEntry('📋 數據匯出成功', 'success');
-        } catch (error) {
-            addLogEntry('❌ 數據匯出失敗: ' + error.message, 'error');
-        }
-    }
-
-    // 響應式設計支援
-    function handleResize() {
-        if (progressChart) progressChart.resize();
-        if (differenceChart) differenceChart.resize();
-        if (profitChart) profitChart.resize();
-    }
-
-    // 事件監聽器
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('beforeunload', () => {
-        stopAutoSync();
-        if (countdownInterval) clearInterval(countdownInterval);
+// ══════════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════════
+function applyFilter(){
+  const fc=document.getElementById('f-cat').value,fs=document.getElementById('f-status').value;
+  const fb=document.getElementById('f-bldg').value,fq=document.getElementById('f-search').value.toLowerCase();
+  document.querySelectorAll('.sec').forEach(sec=>{
+    if(fc&&sec.dataset.cat!==fc){sec.style.display='none';return;}
+    sec.style.display='';
+    sec.querySelectorAll('tbody tr').forEach(tr=>{
+      let show=true;
+      if(fs&&tr.dataset.status!==fs)show=false;
+      if(fb&&tr.dataset.bldg!==fb)show=false;
+      if(fq&&!tr.dataset.item.toLowerCase().includes(fq))show=false;
+      tr.style.display=show?'':'none';
     });
+  });
+}
+function resetFilter(){
+  ['f-cat','f-status','f-bldg'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-search').value='';
+  applyFilter();
+}
 
-    // 頁面載入完成後初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        initSystem();
-        
-        // 添加鍵盤快捷鍵
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'r':
-                        e.preventDefault();
-                        manualSync();
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        exportData();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        exportChart();
-                        break;
-                }
-            }
-        });
-    });
+// ══════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV(){
+  const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%','本日出工數','明日預計出工數','與原預計差異','本日施工內容','明天預定工作','延遲原因／對策','異常原因說明','備註']];
+  CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
+    const planMP=+gv(ci,ii,'planMP')||0;
+    const actualMP=+gv(ci,ii,'actualMP')||0;
+    const diff=actualMP-planMP;
+    rows.push([
+      cat.name, CATS[ci].items[ii].item,
+      CATS[ci].items[ii].bldg,
+      gv(ci,ii,'status'),
+      gv(ci,ii,'planEnd'),
+      gv(ci,ii,'actualEnd'),
+      gv(ci,ii,'pct'),
+      actualMP,
+      gv(ci,ii,'tomorrowMP'),
+      diff===0?'0':(diff>0?`+${diff}`:`${diff}`),
+      gv(ci,ii,'todayWork'),
+      gv(ci,ii,'tomorrowWork'),
+      gv(ci,ii,'issue'),
+      gv(ci,ii,'abnormal'),
+      gv(ci,ii,'note'),
+    ]);
+  }));
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`前鎮亞灣工項追蹤_${document.getElementById('mtgDate').value.replace(/-/g,'')}.csv`;
+  a.click();
+  showToast('CSV 已匯出');
+}
 
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+loadState();
+renderAll();
+setInterval(saveData,60000);
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
