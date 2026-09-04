@@ -28,24 +28,21 @@
   .btn-export{background:#475569;color:#fff;}
   .btn-print{background:#374151;color:#fff;}
 
-  /* Date bar */
   .datebar{background:#fff;border-bottom:2px solid #e2e8f0;padding:9px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
   .datebar label{font-size:11px;color:#64748b;font-weight:700;white-space:nowrap;}
   .datebar input[type=date]{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;font-family:inherit;outline:none;}
   .datebar input[type=date]:focus{border-color:#2563eb;}
-  .datebar select{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;min-width:180px;}
+  .datebar select{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;min-width:190px;}
   .datebar select:focus{border-color:#2563eb;}
-  .dbar-sep{color:#cbd5e1;padding:0 4px;}
+  .dbar-sep{color:#cbd5e1;padding:0 4px;font-size:13px;}
   .btn-load{background:#1d4ed8;color:#fff;border:none;border-radius:3px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;}
   .btn-load:hover{background:#1e40af;}
   .date-badge{font-size:11px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:2px 8px;font-weight:600;}
 
-  /* Statstrip */
   .statstrip{display:flex;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
   .stat{display:flex;align-items:center;gap:6px;padding:8px 16px;border-right:1px solid var(--border);white-space:nowrap;font-size:12px;}
   .stat-num{font-weight:700;font-size:16px;line-height:1;}
 
-  /* Toolbar */
   .toolbar{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .toolbar label{font-size:11px;color:#64748b;font-weight:600;}
   .toolbar select,.toolbar input[type=text]{border:1px solid var(--border);border-radius:3px;padding:4px 7px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;}
@@ -123,6 +120,14 @@
   .sync-dot.fail{background:#ef4444;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
+  /* 日期範圍結果按鈕列 */
+  .range-bar{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:6px 20px;display:none;gap:8px;align-items:center;flex-wrap:wrap;}
+  .range-bar.show{display:flex;}
+  .range-bar label{font-size:11px;color:#64748b;font-weight:700;}
+  .rdate-btn{background:#fff;border:1px solid #cbd5e1;border-radius:3px;padding:3px 11px;font-size:11px;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;}
+  .rdate-btn:hover{border-color:#2563eb;color:#2563eb;}
+  .rdate-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+
   #overlay{position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:8000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
   #overlay.on{display:flex;}
   .spin{width:42px;height:42px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
@@ -133,15 +138,8 @@
   #toast.err{background:#dc2626;}
   #toast.ok{background:#059669;}
 
-  /* 日期範圍結果列表 */
-  .range-result{background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:8px 14px;margin:0 20px 6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .range-result label{font-size:11px;color:#64748b;font-weight:700;}
-  .range-date-btn{background:#fff;border:1px solid #cbd5e1;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:600;color:#1d4ed8;cursor:pointer;}
-  .range-date-btn:hover{background:#eff6ff;}
-  .range-date-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
-
   @media print{
-    .datebar,.toolbar,.statstrip,.topbar-btns,.range-result{display:none!important;}
+    .datebar,.range-bar,.toolbar,.statstrip,.topbar-btns{display:none!important;}
     .topbar{position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .sec-head,.badge,.pct-fill,tbody tr.row-delay{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .sec-body{display:block!important;}
@@ -207,13 +205,13 @@
   <span id="dateBadge" class="date-badge" style="display:none"></span>
 </div>
 
-<!-- Range Result -->
-<div class="range-result" id="rangeResult" style="display:none">
+<!-- Range Result Bar -->
+<div class="range-bar" id="rangeBar">
   <label>查詢結果：</label>
-  <div id="rangeBtns"></div>
+  <div id="rangeBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
 </div>
 
-<!-- Statstrip -->
+<!-- Stat Strip -->
 <div class="statstrip" id="statstrip"></div>
 
 <!-- Filter Toolbar -->
@@ -250,7 +248,7 @@
 
 <script>
 // ══════════════════════════════════════════════════
-// ★ API 網址（已綁定您的 Apps Script）
+// ★ API（已綁定）
 // ══════════════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycbwjwsbt9stBqeCtOL8kxGq_PWjY-4ncZl8UbxuqgoxVCEG_BJfWKqMrado2u-r5G_yS/exec';
 
@@ -303,11 +301,8 @@ const CATS = [
   ]},
 ];
 
-// ══════════════════════════════════════════════════
-// 狀態
-// ══════════════════════════════════════════════════
-let STATE = {};   // key=`ci_ii` → 欄位值
-let META  = {};   // key=`ci_ii` → items sheet 預設值
+let STATE = {};
+let META  = {};
 
 const SK = (ci,ii) => `${ci}_${ii}`;
 const SL = ['已完成','進行中','待施工','延遲','待申請'];
@@ -323,15 +318,12 @@ function gv(ci,ii,k){
 }
 function sv(ci,ii,k,v){if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};STATE[SK(ci,ii)][k]=v;}
 
-// ══════════════════════════════════════════════════
-// UI Helpers
-// ══════════════════════════════════════════════════
+// ── UI Helpers ──
 function loading(msg='處理中...'){
   document.getElementById('overlayMsg').textContent=msg;
   document.getElementById('overlay').classList.add('on');
 }
 function unload(){document.getElementById('overlay').classList.remove('on');}
-
 function toast(msg,type=''){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className=type; t.style.opacity='1';
@@ -341,48 +333,45 @@ function sync(st,txt=''){
   document.getElementById('syncDot').className='sync-dot '+st;
   document.getElementById('syncTxt').textContent=txt;
 }
+function badge(txt){
+  const el=document.getElementById('dateBadge');
+  if(txt){el.textContent=txt;el.style.display='';}
+  else el.style.display='none';
+}
 
-// ══════════════════════════════════════════════════
-// Fetch
-// ══════════════════════════════════════════════════
-async function GET(params){
-  const r=await fetch(API+'?'+new URLSearchParams(params));
-  return r.json();
-}
-async function POST(body){
-  const r=await fetch(API,{method:'POST',body:JSON.stringify(body)});
-  return r.json();
-}
+// ── Fetch ──
+async function GET(p){ const r=await fetch(API+'?'+new URLSearchParams(p)); return r.json(); }
+async function POST(b){ const r=await fetch(API,{method:'POST',body:JSON.stringify(b)}); return r.json(); }
 
 // ══════════════════════════════════════════════════
 // 初始化試算表
 // ══════════════════════════════════════════════════
 async function doInit(){
-  loading('初始化 Google Sheets 結構...');
+  loading('初始化 Google Sheets（建立中文工作表）...');
   try{
     const r=await GET({action:'initSheets'});
     unload();
     if(r.ok){
       toast('✓ '+r.msg,'ok');
-      await loadMeta();
-      await refreshPicker();
+      await Promise.all([loadMeta(), refreshPicker()]);
+      renderAll();
     } else toast('錯誤：'+(r.error||r.msg),'err');
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
 // ══════════════════════════════════════════════════
-// 載入 items 主資料（planEnd / defaultStatus / note）
+// 載入工項主檔（META）
 // ══════════════════════════════════════════════════
 async function loadMeta(){
   try{
     const r=await GET({action:'getItems'});
-    if(r.ok){
+    if(r.ok && r.items){
       META={};
       r.items.forEach(it=>{
         META[SK(it.catIndex,it.itemIndex)]={
-          planEnd:String(it.planEnd),
-          status:it.defaultStatus,
-          note:it.note
+          planEnd: String(it.planEnd||''),
+          status:  it.defaultStatus||'進行中',
+          note:    it.note||''
         };
       });
     }
@@ -390,7 +379,7 @@ async function loadMeta(){
 }
 
 // ══════════════════════════════════════════════════
-// 歷史會議下拉選單
+// 歷史會議下拉
 // ══════════════════════════════════════════════════
 async function refreshPicker(){
   try{
@@ -398,7 +387,7 @@ async function refreshPicker(){
     if(!r.ok)return;
     const sel=document.getElementById('mtgPicker');
     sel.innerHTML='<option value="">— 選擇歷史會議 —</option>';
-    r.meetings.forEach(m=>{
+    (r.meetings||[]).forEach(m=>{
       const o=document.createElement('option');
       o.value=m.mtgDate;
       o.textContent=`${m.mtgDate}（第 ${m.mtgWeek||'?'} 次　${m.mtgHost||''}）`;
@@ -427,47 +416,62 @@ async function doRange(){
     unload();
     if(!r.ok){toast('查詢失敗：'+(r.error||''),'err');return;}
 
-    // 取出所有日期
-    const dates=[...new Set(r.records.map(x=>x.mtgDate))].filter(Boolean).sort();
-    const rr=document.getElementById('rangeResult');
-    const rb=document.getElementById('rangeBtns');
+    const dates=[...new Set((r.records||[]).map(x=>x.mtgDate))].filter(Boolean).sort();
+    const bar=document.getElementById('rangeBar');
+    const btns=document.getElementById('rangeBtns');
 
     if(dates.length===0){
-      document.getElementById('dateBadge').style.display='';
-      document.getElementById('dateBadge').textContent='此區間無資料';
-      rr.style.display='none';
+      bar.classList.remove('show');
+      badge('此區間無資料');
       toast('此日期範圍無資料','err');
       return;
     }
 
-    // 顯示日期按鈕列
-    rr.style.display='flex';
-    rb.innerHTML='';
+    // 建立日期按鈕
+    bar.classList.add('show');
+    btns.innerHTML='';
     dates.forEach(d=>{
       const btn=document.createElement('button');
-      btn.className='range-date-btn';
+      btn.className='rdate-btn';
       btn.textContent=d;
-      btn.onclick=()=>{
-        document.querySelectorAll('.range-date-btn').forEach(b=>b.classList.remove('active'));
+      btn.onclick=async ()=>{
+        document.querySelectorAll('.rdate-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('mtgDate').value=d;
-        applyRecords(r.records.filter(x=>x.mtgDate===d));
-        // 同步會議資訊
-        loadMtgMeta(d);
+        applyRecords((r.records||[]).filter(x=>x.mtgDate===d));
+        badge(`已載入：${d}`);
+        // 同步會議基本資料
+        const mr=await GET({action:'getMeetings'});
+        if(mr.ok){
+          const m=(mr.meetings||[]).find(x=>x.mtgDate===d);
+          if(m){
+            document.getElementById('mtgWeek').value=m.mtgWeek||'';
+            document.getElementById('mtgHost').value=m.mtgHost||'';
+            document.getElementById('mtgRec').value =m.mtgRec ||'';
+          }
+        }
       };
-      rb.appendChild(btn);
+      btns.appendChild(btn);
     });
 
     // 自動載入最新一筆
+    btns.lastChild.classList.add('active');
     const latest=dates[dates.length-1];
-    rb.lastChild.classList.add('active');
     document.getElementById('mtgDate').value=latest;
-    applyRecords(r.records.filter(x=>x.mtgDate===latest));
-    loadMtgMeta(latest);
+    applyRecords((r.records||[]).filter(x=>x.mtgDate===latest));
+    badge(`共 ${dates.length} 筆會議，已載入最新：${latest}`);
+    toast(`找到 ${dates.length} 筆會議，已載入最新一筆`,'ok');
 
-    document.getElementById('dateBadge').style.display='';
-    document.getElementById('dateBadge').textContent=`共 ${dates.length} 筆會議`;
-    toast(`找到 ${dates.length} 筆會議紀錄，已載入最新一筆`,'ok');
+    // 載入最新會議基本資料
+    const mr=await GET({action:'getMeetings'});
+    if(mr.ok){
+      const m=(mr.meetings||[]).find(x=>x.mtgDate===latest);
+      if(m){
+        document.getElementById('mtgWeek').value=m.mtgWeek||'';
+        document.getElementById('mtgHost').value=m.mtgHost||'';
+        document.getElementById('mtgRec').value =m.mtgRec ||'';
+      }
+    }
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
@@ -483,48 +487,36 @@ async function loadDate(date){
     ]);
     unload();
     if(!recR.ok){toast('載入失敗：'+(recR.error||''),'err');return;}
-    applyRecords(recR.records);
-    // 填入會議資訊
+    applyRecords(recR.records||[]);
     if(mtgR.ok){
-      const m=mtgR.meetings.find(x=>x.mtgDate===date);
+      const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date);
       if(m){
         document.getElementById('mtgWeek').value=m.mtgWeek||'';
         document.getElementById('mtgHost').value=m.mtgHost||'';
         document.getElementById('mtgRec').value =m.mtgRec ||'';
       }
     }
-    document.getElementById('dateBadge').style.display='';
-    document.getElementById('dateBadge').textContent=`已載入：${date}（${recR.records.length} 筆）`;
+    badge(`已載入：${date}（${(recR.records||[]).length} 筆）`);
     toast(`${date} 資料已載入`,'ok');
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
-async function loadMtgMeta(date){
-  try{
-    const r=await GET({action:'getMeetings'});
-    if(r.ok){
-      const m=r.meetings.find(x=>x.mtgDate===date);
-      if(m){
-        document.getElementById('mtgWeek').value=m.mtgWeek||'';
-        document.getElementById('mtgHost').value=m.mtgHost||'';
-        document.getElementById('mtgRec').value =m.mtgRec ||'';
-      }
-    }
-  }catch(e){}
-}
-
-// ── 套用 records 到 STATE ──
 function applyRecords(records){
   STATE={};
-  records.forEach(r=>{
-    const key=SK(r.catIndex,r.itemIndex);
-    STATE[key]={
-      status:r.status, planEnd:String(r.planEnd||''),
-      actualEnd:String(r.actualEnd||''), pct:+r.pct||0,
-      actualMP:+r.actualMP||0, tomorrowMP:+r.tomorrowMP||0,
-      diff:r.diff||'', todayWork:r.todayWork||'',
-      tomorrowWork:r.tomorrowWork||'', issue:r.issue||'',
-      abnormal:r.abnormal||'', note:r.note||'',
+  (records||[]).forEach(r=>{
+    STATE[SK(r.catIndex,r.itemIndex)]={
+      status:      r.status||'進行中',
+      planEnd:     String(r.planEnd||''),
+      actualEnd:   String(r.actualEnd||''),
+      pct:         +r.pct||0,
+      actualMP:    +r.actualMP||0,
+      tomorrowMP:  +r.tomorrowMP||0,
+      diff:        r.diff||'',
+      todayWork:   r.todayWork||'',
+      tomorrowWork:r.tomorrowWork||'',
+      issue:       r.issue||'',
+      abnormal:    r.abnormal||'',
+      note:        r.note||'',
     };
   });
   renderAll();
@@ -541,14 +533,14 @@ function doNew(){
   document.getElementById('mtgWeek').value='';
   document.getElementById('mtgHost').value='';
   document.getElementById('mtgRec').value='';
-  document.getElementById('dateBadge').style.display='none';
-  document.getElementById('rangeResult').style.display='none';
+  document.getElementById('rangeBar').classList.remove('show');
+  badge('');
   renderAll();
   toast('已開新會議，請填寫後儲存','ok');
 }
 
 // ══════════════════════════════════════════════════
-// ★ 儲存至 Google Sheets（批次送出）
+// ★ 儲存至 Google Sheets
 // ══════════════════════════════════════════════════
 async function doSave(){
   const mtgDate=document.getElementById('mtgDate').value;
@@ -570,19 +562,20 @@ async function doSave(){
     CATS.forEach((cat,ci)=>{
       cat.items.forEach((_,ii)=>{
         records.push({
-          catIndex:ci, itemIndex:ii,
-          status:    gv(ci,ii,'status'),
-          planEnd:   gv(ci,ii,'planEnd'),
-          actualEnd: gv(ci,ii,'actualEnd'),
-          pct:       gv(ci,ii,'pct'),
-          actualMP:  gv(ci,ii,'actualMP'),
-          tomorrowMP:gv(ci,ii,'tomorrowMP'),
-          diff:      gv(ci,ii,'diff'),
-          todayWork: gv(ci,ii,'todayWork'),
+          catIndex:    ci,
+          itemIndex:   ii,
+          status:      gv(ci,ii,'status'),
+          planEnd:     gv(ci,ii,'planEnd'),
+          actualEnd:   gv(ci,ii,'actualEnd'),
+          pct:         gv(ci,ii,'pct'),
+          actualMP:    gv(ci,ii,'actualMP'),
+          tomorrowMP:  gv(ci,ii,'tomorrowMP'),
+          diff:        gv(ci,ii,'diff'),
+          todayWork:   gv(ci,ii,'todayWork'),
           tomorrowWork:gv(ci,ii,'tomorrowWork'),
-          issue:     gv(ci,ii,'issue'),
-          abnormal:  gv(ci,ii,'abnormal'),
-          note:      gv(ci,ii,'note'),
+          issue:       gv(ci,ii,'issue'),
+          abnormal:    gv(ci,ii,'abnormal'),
+          note:        gv(ci,ii,'note'),
         });
       });
     });
@@ -598,8 +591,7 @@ async function doSave(){
       toast('儲存失敗：'+(r.error||''),'err');
     }
   }catch(e){
-    unload();
-    sync('fail','連線失敗');
+    unload(); sync('fail','連線失敗');
     toast('連線失敗：'+e.message,'err');
   }
 }
@@ -671,21 +663,18 @@ function renderTbody(ci){
     const status     =gv(ci,ii,'status')||'進行中';
     const actualMP   =+gv(ci,ii,'actualMP')||0;
     const tomorrowMP =+gv(ci,ii,'tomorrowMP')||0;
-    const diff       =gv(ci,ii,'diff');
-    const todayWork  =gv(ci,ii,'todayWork');
-    const tomorrowWork=gv(ci,ii,'tomorrowWork');
-    const iss        =gv(ci,ii,'issue');
-    const abnormal   =gv(ci,ii,'abnormal');
-    const note       =gv(ci,ii,'note');
-    const aEnd       =gv(ci,ii,'actualEnd');
-    const planEnd    =gv(ci,ii,'planEnd');
-    const metaPlanEnd=(META[SK(ci,ii)]||{}).planEnd||'';
-    const isModified =planEnd&&planEnd!==metaPlanEnd;
+    const diff       =gv(ci,ii,'diff')||'';
+    const todayWork  =gv(ci,ii,'todayWork')||'';
+    const tomorrowWork=gv(ci,ii,'tomorrowWork')||'';
+    const iss        =gv(ci,ii,'issue')||'';
+    const abnormal   =gv(ci,ii,'abnormal')||'';
+    const note       =gv(ci,ii,'note')||'';
+    const aEnd       =gv(ci,ii,'actualEnd')||'';
+    const planEnd    =gv(ci,ii,'planEnd')||'';
+    const metaPE     =(META[SK(ci,ii)]||{}).planEnd||'';
+    const isModified =planEnd&&planEnd!==metaPE;
     const isDelay    =status==='延遲';
     const isDone     =status==='已完成';
-    const behindHtml =isDelay
-      ?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>'
-      :'<span style="color:#9ca3af;font-size:11px">—</span>';
 
     const tr=document.createElement('tr');
     if(isDelay)tr.className='row-delay';
@@ -719,14 +708,13 @@ function renderTbody(ci){
       <td class="c-pct">
         <div class="pct-wrap">
           <div class="pct-bar">
-            <div class="pct-fill" id="pf_${ci}_${ii}"
-              style="width:${pct}%;background:${pc(pct)}"></div>
+            <div class="pct-fill" id="pf_${ci}_${ii}" style="width:${pct}%;background:${pc(pct)}"></div>
           </div>
           <input class="pct-input" type="number" min="0" max="100" value="${pct}"
             oninput="updPct(${ci},${ii},this.value)">
         </div>
       </td>
-      <td>${behindHtml}</td>
+      <td>${isDelay?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>':'<span style="color:#9ca3af;font-size:11px">—</span>'}</td>
       <td style="border-left:2px solid #e5e7eb">
         <input class="mp-in" type="number" min="0" value="${actualMP}"
           onchange="sv(${ci},${ii},'actualMP',+this.value);updateStats();">
@@ -737,48 +725,31 @@ function renderTbody(ci){
       </td>
       <td class="c-diff">
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'diff',this.innerText.trim());"
-        >${diff}</div>
+          onblur="sv(${ci},${ii},'diff',this.innerText.trim());">${diff}</div>
       </td>
       <td style="border-left:2px solid #e5e7eb">
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'todayWork',this.innerText.trim());"
-        >${todayWork}</div>
+          onblur="sv(${ci},${ii},'todayWork',this.innerText.trim());">${todayWork}</div>
       </td>
       <td>
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'tomorrowWork',this.innerText.trim());"
-        >${tomorrowWork}</div>
+          onblur="sv(${ci},${ii},'tomorrowWork',this.innerText.trim());">${tomorrowWork}</div>
       </td>
       <td>
         <div class="ed issue-red" contenteditable="true"
-          onblur="sv(${ci},${ii},'issue',this.innerText.trim());"
-        >${iss}</div>
+          onblur="sv(${ci},${ii},'issue',this.innerText.trim());">${iss}</div>
       </td>
       <td>
         <div class="ed abnormal-orange" contenteditable="true"
-          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());"
-        >${abnormal}</div>
+          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());">${abnormal}</div>
       </td>
       <td>
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'note',this.innerText.trim());rerenderSub(${ci},${ii},this.innerText.trim());"
-        >${note}</div>
+          onblur="sv(${ci},${ii},'note',this.innerText.trim());">${note}</div>
       </td>`;
     tbody.appendChild(tr);
   });
   updSecPct(ci);
-}
-
-function rerenderSub(ci,ii,txt){
-  const tbody=document.getElementById(`tb_${ci}`);
-  const tr=tbody.children[ii];
-  if(!tr)return;
-  const sub=tr.querySelector('.item-sub');
-  if(txt){
-    if(sub)sub.textContent=txt;
-    else{const d=document.createElement('div');d.className='item-sub';d.textContent=txt;tr.querySelector('.item-name').after(d);}
-  } else if(sub) sub.remove();
 }
 
 function updPct(ci,ii,val){
@@ -794,7 +765,6 @@ function updatePlanEnd(ci,ii,val,el){
   sv(ci,ii,'planEnd',v);
   const metaPE=(META[SK(ci,ii)]||{}).planEnd||'';
   el.classList.toggle('modified',!!(v&&v!==metaPE));
-  updateStats(); updSecPct(ci);
 }
 
 function cycleStatus(ci,ii,el){
@@ -853,9 +823,6 @@ function updateStats(){
     </div>`;
 }
 
-// ══════════════════════════════════════════════════
-// 篩選
-// ══════════════════════════════════════════════════
 function applyFilter(){
   const fc=document.getElementById('f-cat').value;
   const fs=document.getElementById('f-status').value;
@@ -879,9 +846,6 @@ function resetFilter(){
   applyFilter();
 }
 
-// ══════════════════════════════════════════════════
-// CSV 匯出
-// ══════════════════════════════════════════════════
 function exportCSV(){
   const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%',
                '本日出工','明日預計出工','差異','本日施工','明日工作','延遲原因','異常說明','備註']];
@@ -905,8 +869,7 @@ function exportCSV(){
 // ══════════════════════════════════════════════════
 (async()=>{
   renderAll();
-  await loadMeta();
-  await refreshPicker();
+  await Promise.all([loadMeta(), refreshPicker()]);
   renderAll();
 })();
 </script>
