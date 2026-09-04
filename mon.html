@@ -10,30 +10,45 @@
   body{font-family:'Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);font-size:13px;color:#1e293b;}
 
   .topbar{background:#1e3a5f;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
-  .topbar-left{display:flex;flex-direction:column;gap:1px;}
+  .topbar-left{display:flex;flex-direction:column;gap:2px;}
   .topbar-title{font-size:15px;font-weight:700;letter-spacing:.3px;}
-  .topbar-sub{font-size:11px;opacity:.55;}
+  .topbar-sub{font-size:11px;opacity:.65;display:flex;align-items:center;gap:5px;}
   .topbar-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .meta-field{display:flex;align-items:center;gap:4px;font-size:12px;}
   .meta-field label{opacity:.6;white-space:nowrap;}
-  .meta-field input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:3px;padding:3px 7px;font-size:12px;font-family:inherit;width:110px;}
+  .meta-field input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:3px;padding:3px 7px;font-size:12px;font-family:inherit;width:110px;}
   .meta-field input::placeholder{color:rgba(255,255,255,.35);}
-  .meta-field input:focus{outline:none;background:rgba(255,255,255,.18);}
-  .topbar-btns{display:flex;gap:6px;}
+  .meta-field input:focus{outline:none;background:rgba(255,255,255,.2);}
+  .topbar-btns{display:flex;gap:6px;flex-wrap:wrap;}
   .btn{border:none;border-radius:3px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .btn:hover{opacity:.82;} .btn:disabled{opacity:.35;cursor:not-allowed;}
   .btn-save{background:#2563eb;color:#fff;}
+  .btn-new{background:#059669;color:#fff;}
+  .btn-init{background:#7c3aed;color:#fff;}
   .btn-export{background:#475569;color:#fff;}
   .btn-print{background:#374151;color:#fff;}
-  .btn:hover{opacity:.85;}
 
-  .statstrip{display:flex;gap:0;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
-  .stat{display:flex;align-items:center;gap:7px;padding:8px 16px;border-right:1px solid var(--border);white-space:nowrap;font-size:12px;}
+  /* Date bar */
+  .datebar{background:#fff;border-bottom:2px solid #e2e8f0;padding:9px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .datebar label{font-size:11px;color:#64748b;font-weight:700;white-space:nowrap;}
+  .datebar input[type=date]{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;font-family:inherit;outline:none;}
+  .datebar input[type=date]:focus{border-color:#2563eb;}
+  .datebar select{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;min-width:180px;}
+  .datebar select:focus{border-color:#2563eb;}
+  .dbar-sep{color:#cbd5e1;padding:0 4px;}
+  .btn-load{background:#1d4ed8;color:#fff;border:none;border-radius:3px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+  .btn-load:hover{background:#1e40af;}
+  .date-badge{font-size:11px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:2px 8px;font-weight:600;}
+
+  /* Statstrip */
+  .statstrip{display:flex;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .stat{display:flex;align-items:center;gap:6px;padding:8px 16px;border-right:1px solid var(--border);white-space:nowrap;font-size:12px;}
   .stat-num{font-weight:700;font-size:16px;line-height:1;}
 
+  /* Toolbar */
   .toolbar{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .toolbar label{font-size:11px;color:#64748b;font-weight:600;}
   .toolbar select,.toolbar input[type=text]{border:1px solid var(--border);border-radius:3px;padding:4px 7px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;}
-  .toolbar select:focus,.toolbar input:focus{border-color:#2563eb;}
   .filter-group{display:flex;align-items:center;gap:4px;}
   .btn-clear{background:#f1f5f9;color:#475569;border:1px solid var(--border);border-radius:3px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
   .btn-clear:hover{background:#e2e8f0;}
@@ -45,7 +60,7 @@
   .sec-head-left{display:flex;align-items:center;gap:8px;}
   .sec-head h2{font-size:13px;font-weight:700;color:#fff;}
   .sec-count{font-size:11px;color:rgba(255,255,255,.65);background:rgba(0,0,0,.18);border-radius:2px;padding:1px 7px;}
-  .sec-pct{font-size:11px;color:rgba(255,255,255,.85);font-weight:700;}
+  .sec-pct{font-size:11px;color:rgba(255,255,255,.9);font-weight:700;}
   .toggle{font-size:11px;color:rgba(255,255,255,.7);transition:transform .2s;}
   .sec-head.collapsed .toggle{transform:rotate(-90deg);}
 
@@ -60,16 +75,16 @@
   tbody tr.row-delay:hover{background:#fee2e2;}
   tbody tr.row-done td{color:#6b7280;}
 
-  .c-no{width:28px;text-align:center;color:#9ca3af;font-size:11px;}
+  .c-no{width:26px;text-align:center;color:#9ca3af;font-size:11px;}
   .c-item{min-width:120px;}
   .c-bldg{width:44px;text-align:center;}
   .c-status{width:68px;text-align:center;}
   .c-date{width:82px;text-align:center;font-size:11px;}
-  .c-pct{width:105px;}
-  .c-mp{width:58px;text-align:center;}
-  .c-diff{width:70px;text-align:center;}
-  .c-text{min-width:120px;}
-  .c-note{min-width:110px;}
+  .c-pct{width:108px;}
+  .c-mp{width:56px;text-align:center;}
+  .c-diff{width:68px;text-align:center;}
+  .c-text{min-width:115px;}
+  .c-note{min-width:105px;}
 
   .badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
   .badge:hover{opacity:.75;}
@@ -102,16 +117,36 @@
   .issue-red{color:#dc2626;}
   .abnormal-orange{color:#b45309;}
 
-  #toast{position:fixed;bottom:20px;right:20px;background:#1e3a5f;color:#fff;padding:9px 16px;border-radius:3px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 3px 10px rgba(0,0,0,.2);transition:opacity .3s;opacity:0;pointer-events:none;}
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9ca3af;vertical-align:middle;}
+  .sync-dot.syncing{background:#f59e0b;animation:blink .7s infinite;}
+  .sync-dot.ok{background:#10b981;}
+  .sync-dot.fail{background:#ef4444;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+  #overlay{position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:8000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+  #overlay.on{display:flex;}
+  .spin{width:42px;height:42px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay-msg{color:#fff;font-size:13px;font-weight:600;}
+
+  #toast{position:fixed;bottom:22px;right:22px;padding:9px 18px;border-radius:4px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:opacity .3s;opacity:0;pointer-events:none;background:#1e3a5f;color:#fff;}
+  #toast.err{background:#dc2626;}
+  #toast.ok{background:#059669;}
+
+  /* 日期範圍結果列表 */
+  .range-result{background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:8px 14px;margin:0 20px 6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .range-result label{font-size:11px;color:#64748b;font-weight:700;}
+  .range-date-btn{background:#fff;border:1px solid #cbd5e1;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:600;color:#1d4ed8;cursor:pointer;}
+  .range-date-btn:hover{background:#eff6ff;}
+  .range-date-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
 
   @media print{
-    .topbar .btn,.toolbar,.statstrip{display:none!important;}
+    .datebar,.toolbar,.statstrip,.topbar-btns,.range-result{display:none!important;}
     .topbar{position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .sec-head,.badge,.pct-fill,tbody tr.row-delay,tbody tr.row-done{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-head,.badge,.pct-fill,tbody tr.row-delay{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .sec-body{display:block!important;}
     body{background:#fff;font-size:10px;}
     .wrap{padding:4px 6px;}
-    .sec{margin-bottom:4px;}
     table{font-size:9px;}
     thead th,tbody td{padding:2px 4px;}
   }
@@ -119,26 +154,69 @@
 </head>
 <body>
 
+<!-- TopBar -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-title">前鎮亞灣智慧公宅（第一期）新建統包工程</div>
-    <div class="topbar-sub">工程進度會議追蹤表</div>
+    <div class="topbar-sub">
+      工程進度會議追蹤表
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncTxt" style="font-size:10px;"></span>
+    </div>
   </div>
   <div class="topbar-meta">
-    <div class="meta-field"><label>會議日期</label><input type="date" id="mtgDate" value="2026-09-03"></div>
-    <div class="meta-field"><label>第</label><input type="text" id="mtgWeek" placeholder="次" style="width:44px"><label>次會議</label></div>
-    <div class="meta-field"><label>主持人</label><input type="text" id="mtgHost" placeholder="姓名" style="width:70px"></div>
-    <div class="meta-field"><label>記錄</label><input type="text" id="mtgRec" placeholder="姓名" style="width:70px"></div>
+    <div class="meta-field"><label>會議日期</label>
+      <input type="date" id="mtgDate" value="2026-09-04">
+    </div>
+    <div class="meta-field"><label>第</label>
+      <input type="text" id="mtgWeek" placeholder="次" style="width:44px">
+      <label>次會議</label>
+    </div>
+    <div class="meta-field"><label>主持人</label>
+      <input type="text" id="mtgHost" placeholder="姓名" style="width:70px">
+    </div>
+    <div class="meta-field"><label>記錄</label>
+      <input type="text" id="mtgRec" placeholder="姓名" style="width:70px">
+    </div>
   </div>
   <div class="topbar-btns">
-    <button class="btn btn-save" onclick="saveData()">儲存</button>
-    <button class="btn btn-export" onclick="exportCSV()">匯出 CSV</button>
-    <button class="btn btn-print" onclick="window.print()">列印</button>
+    <button class="btn btn-init" onclick="doInit()">🗄 初始化試算表</button>
+    <button class="btn btn-new"  onclick="doNew()">＋ 新會議</button>
+    <button class="btn btn-save" onclick="doSave()">☁ 儲存雲端</button>
+    <button class="btn btn-export" onclick="exportCSV()">↓ CSV</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 列印</button>
   </div>
 </div>
 
+<!-- Date Bar -->
+<div class="datebar">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <label>📋 歷史會議：</label>
+    <select id="mtgPicker" onchange="onPick()">
+      <option value="">— 選擇歷史會議 —</option>
+    </select>
+  </div>
+  <span class="dbar-sep">｜</span>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <label>📅 日期篩選：</label>
+    <input type="date" id="dateFrom" value="2026-09-01">
+    <span class="dbar-sep">～</span>
+    <input type="date" id="dateTo" value="2026-12-31">
+    <button class="btn-load" onclick="doRange()">🔍 查詢</button>
+  </div>
+  <span id="dateBadge" class="date-badge" style="display:none"></span>
+</div>
+
+<!-- Range Result -->
+<div class="range-result" id="rangeResult" style="display:none">
+  <label>查詢結果：</label>
+  <div id="rangeBtns"></div>
+</div>
+
+<!-- Statstrip -->
 <div class="statstrip" id="statstrip"></div>
 
+<!-- Filter Toolbar -->
 <div class="toolbar">
   <div class="filter-group"><label>類別：</label>
     <select id="f-cat" onchange="applyFilter()">
@@ -166,138 +244,377 @@
 </div>
 
 <div class="wrap" id="mainWrap"></div>
+
+<div id="overlay"><div class="spin"></div><div class="overlay-msg" id="overlayMsg">載入中...</div></div>
 <div id="toast"></div>
 
 <script>
-// ★ 修改說明：所有工項的 pct / actualMP / tomorrowMP 歸零，diff 清空
+// ══════════════════════════════════════════════════
+// ★ API 網址（已綁定您的 Apps Script）
+// ══════════════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/AKfycbwjwsbt9stBqeCtOL8kxGq_PWjY-4ncZl8UbxuqgoxVCEG_BJfWKqMrado2u-r5G_yS/exec';
+
+// ══════════════════════════════════════════════════
+// 工項定義
+// ══════════════════════════════════════════════════
 const CATS = [
-  { name:"假設工程", color:"#1e3a8a", items:[
-    {item:"施工架",   bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
-    {item:"施工架",   bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"施工電梯", bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"塔吊",     bldg:"全棟",planEnd:"—",     actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"",  tomorrowWork:"",          issue:"", abnormal:"", note:""},
+  { name:'假設工程', color:'#1e3a8a', items:[
+    {item:'施工架',bldg:'東'},{item:'施工架',bldg:'西'},
+    {item:'施工架',bldg:'南'},{item:'施工架',bldg:'北'},
+    {item:'施工電梯',bldg:'全棟'},{item:'塔吊',bldg:'全棟'},
   ]},
-  { name:"室內裝修", color:"#4c1d95", items:[
-    {item:"輕隔間",         bldg:"東",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"西",  planEnd:"09/18", actualEnd:"09/18", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"南",  planEnd:"09/23", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/23完成", issue:"", abnormal:"", note:""},
-    {item:"輕隔間",         bldg:"北",  planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"油漆",           bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
-    {item:"油漆",           bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
-    {item:"油漆",           bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
-    {item:"油漆",           bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
-    {item:"戶內地磚+壁磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"走廊+陽台地磚",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"戶內暗架天花板", bldg:"全棟",planEnd:"09/24", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"09/05開始施作", tomorrowWork:"09/24完成", issue:"", abnormal:"", note:"09/05開始-09/24完成"},
-    {item:"1F/2F戶內天花板",bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"走廊造型天花板", bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"14F-11F分段完成"},
-    {item:"廚具",           bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"衛浴設備",       bldg:"全棟",planEnd:"12/30", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
+  { name:'室內裝修', color:'#4c1d95', items:[
+    {item:'輕隔間',bldg:'東'},{item:'輕隔間',bldg:'西'},
+    {item:'輕隔間',bldg:'南'},{item:'輕隔間',bldg:'北'},
+    {item:'油漆',bldg:'東'},{item:'油漆',bldg:'西'},
+    {item:'油漆',bldg:'南'},{item:'油漆',bldg:'北'},
+    {item:'戶內地磚+壁磚',bldg:'全棟'},{item:'走廊+陽台地磚',bldg:'全棟'},
+    {item:'戶內暗架天花板',bldg:'全棟'},{item:'1F/2F戶內天花板',bldg:'全棟'},
+    {item:'走廊造型天花板',bldg:'全棟'},{item:'廚具',bldg:'全棟'},{item:'衛浴設備',bldg:'全棟'},
   ]},
-  { name:"外牆", color:"#1e4e79", items:[
-    {item:"格柵",       bldg:"東",  planEnd:"09/11", actualEnd:"09/11", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"西",  planEnd:"09/11", actualEnd:"09/11", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"南",  planEnd:"09/16", actualEnd:"09/16", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"格柵",       bldg:"北",  planEnd:"08/23", actualEnd:"08/23", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"石材",       bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/25完成", issue:"", abnormal:"", note:""},
-    {item:"塗料",       bldg:"東",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/22，氣候延9/2開始"},
-    {item:"塗料",       bldg:"西",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/21，氣候延9/2開始"},
-    {item:"塗料",       bldg:"南",  planEnd:"09/14", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"持續施作", tomorrowWork:"09/14完成", issue:"氣候延誤", abnormal:"", note:"原8/30，氣候延9/2開始"},
-    {item:"塗料",       bldg:"北",  planEnd:"09/08", actualEnd:"09/08", pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"氣候延誤", abnormal:"", note:"原8/16，氣候延9/2開始"},
-    {item:"太陽能板R1F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"太陽能板R2F",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"屋頂防水",   bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
+  { name:'外牆', color:'#1e4e79', items:[
+    {item:'格柵',bldg:'東'},{item:'格柵',bldg:'西'},
+    {item:'格柵',bldg:'南'},{item:'格柵',bldg:'北'},
+    {item:'石材',bldg:'全棟'},{item:'塗料',bldg:'東'},
+    {item:'塗料',bldg:'西'},{item:'塗料',bldg:'南'},{item:'塗料',bldg:'北'},
+    {item:'太陽能板R1F',bldg:'全棟'},{item:'太陽能板R2F',bldg:'全棟'},{item:'屋頂防水',bldg:'全棟'},
   ]},
-  { name:"景觀", color:"#14532d", items:[
-    {item:"1F景觀防水",  bldg:"全棟",planEnd:"完成",  actualEnd:"完成",  pct:0, status:"已完成", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀防水",  bldg:"全棟",planEnd:"10/01", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"3F景觀防水",  bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"延至09/15", abnormal:"", note:"08/30延至09/15"},
-    {item:"屋頂景觀花台",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F景觀花台",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F景觀花台",  bldg:"全棟",planEnd:"10/18", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"屋頂景觀鋪面",bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F景觀鋪面",  bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F景觀鋪面",  bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"屋頂植栽",    bldg:"全棟",planEnd:"09/15", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"09/15完成", issue:"", abnormal:"", note:""},
-    {item:"3F植栽",      bldg:"全棟",planEnd:"09/22", actualEnd:"",      pct:0, status:"進行中", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"2F植栽",      bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"1F植栽",      bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0, status:"待施工", actualMP:0, tomorrowMP:0, diff:"", todayWork:"", tomorrowWork:"",          issue:"", abnormal:"", note:""},
+  { name:'景觀', color:'#14532d', items:[
+    {item:'1F景觀防水',bldg:'全棟'},{item:'2F景觀防水',bldg:'全棟'},{item:'3F景觀防水',bldg:'全棟'},
+    {item:'屋頂景觀花台',bldg:'全棟'},{item:'3F景觀花台',bldg:'全棟'},
+    {item:'2F景觀花台',bldg:'全棟'},{item:'1F景觀花台',bldg:'全棟'},
+    {item:'屋頂景觀鋪面',bldg:'全棟'},{item:'3F景觀鋪面',bldg:'全棟'},
+    {item:'2F景觀鋪面',bldg:'全棟'},{item:'1F景觀鋪面',bldg:'全棟'},
+    {item:'屋頂植栽',bldg:'全棟'},{item:'3F植栽',bldg:'全棟'},
+    {item:'2F植栽',bldg:'全棟'},{item:'1F植栽',bldg:'全棟'},
   ]},
-  { name:"地下室", color:"#451a03", items:[
-    {item:"EPOXY(含標線)B2",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
-    {item:"EPOXY(含標線)B1",bldg:"全棟",planEnd:"09/30",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",issue:"",abnormal:"",note:"停車設施，無影響使照"},
+  { name:'地下室', color:'#451a03', items:[
+    {item:'EPOXY(含標線)B2',bldg:'全棟'},{item:'EPOXY(含標線)B1',bldg:'全棟'},
   ]},
-  { name:"機電", color:"#422006", items:[
-    {item:"給水(戶內)",   bldg:"全棟",planEnd:"09/25", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"給水(戶外)",   bldg:"全棟",planEnd:"09/04", actualEnd:"09/04", pct:0,status:"已完成", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"排水",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:""},
-    {item:"消防",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"14F-11F骨架完成",tomorrowWork:"10F-3F封版",issue:"", abnormal:"", note:"14F-11F 08/28-09/05完成骨架"},
-    {item:"電力",         bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"弱電監控",     bldg:"全棟",planEnd:"10/28", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"無影響使照"},
-    {item:"空調冷氣",     bldg:"全棟",planEnd:"11/15", actualEnd:"",      pct:0,status:"進行中", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"冷氣機品牌順序調整，專管審查中", abnormal:"", note:"以專管單位發文至機關後起算"},
-    {item:"電梯使照取得", bldg:"全棟",planEnd:"10/15", actualEnd:"",      pct:0,status:"待施工", actualMP:0,tomorrowMP:0,diff:"",todayWork:"",               tomorrowWork:"",          issue:"", abnormal:"", note:"全部電梯許可證取得後補件"},
+  { name:'機電', color:'#422006', items:[
+    {item:'給水(戶內)',bldg:'全棟'},{item:'給水(戶外)',bldg:'全棟'},{item:'排水',bldg:'全棟'},
+    {item:'消防',bldg:'全棟'},{item:'電力',bldg:'全棟'},{item:'弱電監控',bldg:'全棟'},
+    {item:'空調冷氣',bldg:'全棟'},{item:'電梯使照取得',bldg:'全棟'},
   ]},
-  { name:"外單位檢查", color:"#7f1d1d", items:[
-    {item:"消防檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"電信檢查",   bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"雨汙水檢查", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"無障礙勘驗", bldg:"—",planEnd:"10/15",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"09/15申請",issue:"",abnormal:"",note:"預計申請09/15，取得10/15"},
-    {item:"使照申請",   bldg:"—",planEnd:"10/30",     actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"預計申請10/01，取得10/30"},
-    {item:"用電申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
-    {item:"用水申請",   bldg:"—",planEnd:"2027/01/30",actualEnd:"",pct:0,status:"待申請",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"使照後申請"},
-    {item:"完工",       bldg:"—",planEnd:"2027/02/10",actualEnd:"",pct:0,status:"待施工",actualMP:0,tomorrowMP:0,diff:"",todayWork:"",tomorrowWork:"",           issue:"",abnormal:"",note:"最終完工目標"},
+  { name:'外單位檢查', color:'#7f1d1d', items:[
+    {item:'消防檢查',bldg:'—'},{item:'電信檢查',bldg:'—'},{item:'雨汙水檢查',bldg:'—'},
+    {item:'無障礙勘驗',bldg:'—'},{item:'使照申請',bldg:'—'},
+    {item:'用電申請',bldg:'—'},{item:'用水申請',bldg:'—'},{item:'完工',bldg:'—'},
   ]},
 ];
 
-let STATE={};
-const SK=(ci,ii)=>`${ci}_${ii}`;
-const SL=["已完成","進行中","待施工","延遲","待申請"];
-const SC={"已完成":"b-done","進行中":"b-ing","待施工":"b-wait","延遲":"b-delay","待申請":"b-apply"};
+// ══════════════════════════════════════════════════
+// 狀態
+// ══════════════════════════════════════════════════
+let STATE = {};   // key=`ci_ii` → 欄位值
+let META  = {};   // key=`ci_ii` → items sheet 預設值
 
-function loadState(){
-  try{const r=localStorage.getItem('ybay_s');if(r)STATE=JSON.parse(r);}catch(e){}
-  try{const m=localStorage.getItem('ybay_m');if(m){const d=JSON.parse(m);
-    if(d.date)document.getElementById('mtgDate').value=d.date;
-    if(d.week)document.getElementById('mtgWeek').value=d.week;
-    if(d.host)document.getElementById('mtgHost').value=d.host;
-    if(d.rec) document.getElementById('mtgRec').value=d.rec;
-  }}catch(e){}
+const SK = (ci,ii) => `${ci}_${ii}`;
+const SL = ['已完成','進行中','待施工','延遲','待申請'];
+const SC = {'已完成':'b-done','進行中':'b-ing','待施工':'b-wait','延遲':'b-delay','待申請':'b-apply'};
+const pc = p => p===100?'#15803d':p>=70?'#1d4ed8':p>=40?'#d97706':'#dc2626';
+
+function gv(ci,ii,k){
+  const s=STATE[SK(ci,ii)]; if(s&&s[k]!==undefined)return s[k];
+  const m=META[SK(ci,ii)];  if(m&&m[k]!==undefined)return m[k];
+  const def={pct:0,actualMP:0,tomorrowMP:0,diff:'',todayWork:'',tomorrowWork:'',
+             issue:'',abnormal:'',note:'',actualEnd:'',status:'進行中',planEnd:''};
+  return def[k]??'';
 }
-function saveData(){
-  localStorage.setItem('ybay_s',JSON.stringify(STATE));
-  localStorage.setItem('ybay_m',JSON.stringify({
-    date:document.getElementById('mtgDate').value,
-    week:document.getElementById('mtgWeek').value,
-    host:document.getElementById('mtgHost').value,
-    rec: document.getElementById('mtgRec').value,
-  }));
-  showToast('已儲存');
-}
-function gv(ci,ii,k){const s=STATE[SK(ci,ii)];return(s&&s[k]!==undefined)?s[k]:CATS[ci].items[ii][k];}
 function sv(ci,ii,k,v){if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};STATE[SK(ci,ii)][k]=v;}
 
-function updatePlanEnd(ci,ii,val,el){
-  const v=val.trim();
-  sv(ci,ii,'planEnd',v);
-  el.classList.toggle('modified', v!==CATS[ci].items[ii].planEnd);
-  updateStats();updSecPct(ci);
+// ══════════════════════════════════════════════════
+// UI Helpers
+// ══════════════════════════════════════════════════
+function loading(msg='處理中...'){
+  document.getElementById('overlayMsg').textContent=msg;
+  document.getElementById('overlay').classList.add('on');
+}
+function unload(){document.getElementById('overlay').classList.remove('on');}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=type; t.style.opacity='1';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.opacity='0',2800);
+}
+function sync(st,txt=''){
+  document.getElementById('syncDot').className='sync-dot '+st;
+  document.getElementById('syncTxt').textContent=txt;
 }
 
-function pc(p){return p===100?"#15803d":p>=70?"#1d4ed8":p>=40?"#d97706":"#dc2626";}
+// ══════════════════════════════════════════════════
+// Fetch
+// ══════════════════════════════════════════════════
+async function GET(params){
+  const r=await fetch(API+'?'+new URLSearchParams(params));
+  return r.json();
+}
+async function POST(body){
+  const r=await fetch(API,{method:'POST',body:JSON.stringify(body)});
+  return r.json();
+}
 
+// ══════════════════════════════════════════════════
+// 初始化試算表
+// ══════════════════════════════════════════════════
+async function doInit(){
+  loading('初始化 Google Sheets 結構...');
+  try{
+    const r=await GET({action:'initSheets'});
+    unload();
+    if(r.ok){
+      toast('✓ '+r.msg,'ok');
+      await loadMeta();
+      await refreshPicker();
+    } else toast('錯誤：'+(r.error||r.msg),'err');
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+}
+
+// ══════════════════════════════════════════════════
+// 載入 items 主資料（planEnd / defaultStatus / note）
+// ══════════════════════════════════════════════════
+async function loadMeta(){
+  try{
+    const r=await GET({action:'getItems'});
+    if(r.ok){
+      META={};
+      r.items.forEach(it=>{
+        META[SK(it.catIndex,it.itemIndex)]={
+          planEnd:String(it.planEnd),
+          status:it.defaultStatus,
+          note:it.note
+        };
+      });
+    }
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════
+// 歷史會議下拉選單
+// ══════════════════════════════════════════════════
+async function refreshPicker(){
+  try{
+    const r=await GET({action:'getMeetings'});
+    if(!r.ok)return;
+    const sel=document.getElementById('mtgPicker');
+    sel.innerHTML='<option value="">— 選擇歷史會議 —</option>';
+    r.meetings.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.mtgDate;
+      o.textContent=`${m.mtgDate}（第 ${m.mtgWeek||'?'} 次　${m.mtgHost||''}）`;
+      sel.appendChild(o);
+    });
+  }catch(e){}
+}
+
+async function onPick(){
+  const d=document.getElementById('mtgPicker').value;
+  if(!d)return;
+  document.getElementById('mtgDate').value=d;
+  await loadDate(d);
+}
+
+// ══════════════════════════════════════════════════
+// ★ 日期範圍查詢
+// ══════════════════════════════════════════════════
+async function doRange(){
+  const from=document.getElementById('dateFrom').value;
+  const to  =document.getElementById('dateTo').value;
+  if(!from||!to){toast('請選擇日期範圍','err');return;}
+  loading(`查詢 ${from} ～ ${to}...`);
+  try{
+    const r=await GET({action:'getRecords',dateFrom:from,dateTo:to});
+    unload();
+    if(!r.ok){toast('查詢失敗：'+(r.error||''),'err');return;}
+
+    // 取出所有日期
+    const dates=[...new Set(r.records.map(x=>x.mtgDate))].filter(Boolean).sort();
+    const rr=document.getElementById('rangeResult');
+    const rb=document.getElementById('rangeBtns');
+
+    if(dates.length===0){
+      document.getElementById('dateBadge').style.display='';
+      document.getElementById('dateBadge').textContent='此區間無資料';
+      rr.style.display='none';
+      toast('此日期範圍無資料','err');
+      return;
+    }
+
+    // 顯示日期按鈕列
+    rr.style.display='flex';
+    rb.innerHTML='';
+    dates.forEach(d=>{
+      const btn=document.createElement('button');
+      btn.className='range-date-btn';
+      btn.textContent=d;
+      btn.onclick=()=>{
+        document.querySelectorAll('.range-date-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('mtgDate').value=d;
+        applyRecords(r.records.filter(x=>x.mtgDate===d));
+        // 同步會議資訊
+        loadMtgMeta(d);
+      };
+      rb.appendChild(btn);
+    });
+
+    // 自動載入最新一筆
+    const latest=dates[dates.length-1];
+    rb.lastChild.classList.add('active');
+    document.getElementById('mtgDate').value=latest;
+    applyRecords(r.records.filter(x=>x.mtgDate===latest));
+    loadMtgMeta(latest);
+
+    document.getElementById('dateBadge').style.display='';
+    document.getElementById('dateBadge').textContent=`共 ${dates.length} 筆會議`;
+    toast(`找到 ${dates.length} 筆會議紀錄，已載入最新一筆`,'ok');
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+}
+
+// ══════════════════════════════════════════════════
+// 載入指定日期
+// ══════════════════════════════════════════════════
+async function loadDate(date){
+  loading(`載入 ${date} 資料...`);
+  try{
+    const [recR,mtgR]=await Promise.all([
+      GET({action:'getRecords',date}),
+      GET({action:'getMeetings'}),
+    ]);
+    unload();
+    if(!recR.ok){toast('載入失敗：'+(recR.error||''),'err');return;}
+    applyRecords(recR.records);
+    // 填入會議資訊
+    if(mtgR.ok){
+      const m=mtgR.meetings.find(x=>x.mtgDate===date);
+      if(m){
+        document.getElementById('mtgWeek').value=m.mtgWeek||'';
+        document.getElementById('mtgHost').value=m.mtgHost||'';
+        document.getElementById('mtgRec').value =m.mtgRec ||'';
+      }
+    }
+    document.getElementById('dateBadge').style.display='';
+    document.getElementById('dateBadge').textContent=`已載入：${date}（${recR.records.length} 筆）`;
+    toast(`${date} 資料已載入`,'ok');
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+}
+
+async function loadMtgMeta(date){
+  try{
+    const r=await GET({action:'getMeetings'});
+    if(r.ok){
+      const m=r.meetings.find(x=>x.mtgDate===date);
+      if(m){
+        document.getElementById('mtgWeek').value=m.mtgWeek||'';
+        document.getElementById('mtgHost').value=m.mtgHost||'';
+        document.getElementById('mtgRec').value =m.mtgRec ||'';
+      }
+    }
+  }catch(e){}
+}
+
+// ── 套用 records 到 STATE ──
+function applyRecords(records){
+  STATE={};
+  records.forEach(r=>{
+    const key=SK(r.catIndex,r.itemIndex);
+    STATE[key]={
+      status:r.status, planEnd:String(r.planEnd||''),
+      actualEnd:String(r.actualEnd||''), pct:+r.pct||0,
+      actualMP:+r.actualMP||0, tomorrowMP:+r.tomorrowMP||0,
+      diff:r.diff||'', todayWork:r.todayWork||'',
+      tomorrowWork:r.tomorrowWork||'', issue:r.issue||'',
+      abnormal:r.abnormal||'', note:r.note||'',
+    };
+  });
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// 新會議
+// ══════════════════════════════════════════════════
+function doNew(){
+  if(!confirm('開新會議將清空目前畫面（未儲存資料將遺失），確定？'))return;
+  STATE={};
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('mtgDate').value=today;
+  document.getElementById('mtgWeek').value='';
+  document.getElementById('mtgHost').value='';
+  document.getElementById('mtgRec').value='';
+  document.getElementById('dateBadge').style.display='none';
+  document.getElementById('rangeResult').style.display='none';
+  renderAll();
+  toast('已開新會議，請填寫後儲存','ok');
+}
+
+// ══════════════════════════════════════════════════
+// ★ 儲存至 Google Sheets（批次送出）
+// ══════════════════════════════════════════════════
+async function doSave(){
+  const mtgDate=document.getElementById('mtgDate').value;
+  if(!mtgDate){toast('請選擇會議日期','err');return;}
+  sync('syncing','儲存中...');
+  loading('儲存至 Google Sheets...');
+  try{
+    // 1. 儲存會議基本資料
+    await POST({
+      action:'saveMeeting',
+      mtgDate,
+      mtgWeek:document.getElementById('mtgWeek').value,
+      mtgHost:document.getElementById('mtgHost').value,
+      mtgRec: document.getElementById('mtgRec').value,
+    });
+
+    // 2. 批次儲存所有工項
+    const records=[];
+    CATS.forEach((cat,ci)=>{
+      cat.items.forEach((_,ii)=>{
+        records.push({
+          catIndex:ci, itemIndex:ii,
+          status:    gv(ci,ii,'status'),
+          planEnd:   gv(ci,ii,'planEnd'),
+          actualEnd: gv(ci,ii,'actualEnd'),
+          pct:       gv(ci,ii,'pct'),
+          actualMP:  gv(ci,ii,'actualMP'),
+          tomorrowMP:gv(ci,ii,'tomorrowMP'),
+          diff:      gv(ci,ii,'diff'),
+          todayWork: gv(ci,ii,'todayWork'),
+          tomorrowWork:gv(ci,ii,'tomorrowWork'),
+          issue:     gv(ci,ii,'issue'),
+          abnormal:  gv(ci,ii,'abnormal'),
+          note:      gv(ci,ii,'note'),
+        });
+      });
+    });
+
+    const r=await POST({action:'saveBatch',mtgDate,records});
+    unload();
+    if(r.ok){
+      sync('ok',`已儲存 ${r.total} 筆`);
+      toast(`✓ 儲存成功（更新 ${r.updated} / 新增 ${r.inserted}）`,'ok');
+      await refreshPicker();
+    } else {
+      sync('fail','儲存失敗');
+      toast('儲存失敗：'+(r.error||''),'err');
+    }
+  }catch(e){
+    unload();
+    sync('fail','連線失敗');
+    toast('連線失敗：'+e.message,'err');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 渲染
+// ══════════════════════════════════════════════════
 function renderAll(){
   const wrap=document.getElementById('mainWrap');
   wrap.innerHTML='';
   CATS.forEach((cat,ci)=>{
     const sec=document.createElement('div');
-    sec.className='sec';
-    sec.dataset.cat=cat.name;
+    sec.className='sec'; sec.dataset.cat=cat.name;
     sec.innerHTML=`
-      <div class="sec-head" style="background:${cat.color};border-left:4px solid ${cat.color}" onclick="toggleSec(this)">
+      <div class="sec-head" style="background:${cat.color}" onclick="toggleSec(this)">
         <div class="sec-head-left">
           <h2>${cat.name}</h2>
           <span class="sec-count">${cat.items.length} 項</span>
@@ -325,7 +642,7 @@ function renderAll(){
                 <th class="c-date">預計完成</th>
                 <th class="c-date">實際完成</th>
                 <th class="c-pct">完成率</th>
-                <th class="c-date" style="width:56px">落後</th>
+                <th class="c-date" style="width:52px">落後</th>
                 <th class="c-mp" style="border-left:2px solid #d1d5db">本日<br>出工數</th>
                 <th class="c-mp">明日預計<br>出工數</th>
                 <th class="c-diff">與原預計<br>差異</th>
@@ -350,41 +667,49 @@ function renderTbody(ci){
   const tbody=document.getElementById(`tb_${ci}`);
   tbody.innerHTML='';
   CATS[ci].items.forEach((row,ii)=>{
-    const pct        = gv(ci,ii,'pct');
-    const status     = gv(ci,ii,'status');
-    const actualMP   = +gv(ci,ii,'actualMP')   || 0;
-    const tomorrowMP = +gv(ci,ii,'tomorrowMP') || 0;
-    const diff       = gv(ci,ii,'diff');
-    const todayWork  = gv(ci,ii,'todayWork');
-    const tomorrowWork = gv(ci,ii,'tomorrowWork');
-    const iss        = gv(ci,ii,'issue');
-    const abnormal   = gv(ci,ii,'abnormal');
-    const note       = gv(ci,ii,'note');
-    const aEnd       = gv(ci,ii,'actualEnd');
-    const planEnd    = gv(ci,ii,'planEnd');
-    const isModified = planEnd !== CATS[ci].items[ii].planEnd;
-    const isDelay    = status==='延遲';
-    const isDone     = status==='已完成';
-    const behindHtml = isDelay?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>':'<span style="color:#9ca3af;font-size:11px">—</span>';
+    const pct        =+gv(ci,ii,'pct')||0;
+    const status     =gv(ci,ii,'status')||'進行中';
+    const actualMP   =+gv(ci,ii,'actualMP')||0;
+    const tomorrowMP =+gv(ci,ii,'tomorrowMP')||0;
+    const diff       =gv(ci,ii,'diff');
+    const todayWork  =gv(ci,ii,'todayWork');
+    const tomorrowWork=gv(ci,ii,'tomorrowWork');
+    const iss        =gv(ci,ii,'issue');
+    const abnormal   =gv(ci,ii,'abnormal');
+    const note       =gv(ci,ii,'note');
+    const aEnd       =gv(ci,ii,'actualEnd');
+    const planEnd    =gv(ci,ii,'planEnd');
+    const metaPlanEnd=(META[SK(ci,ii)]||{}).planEnd||'';
+    const isModified =planEnd&&planEnd!==metaPlanEnd;
+    const isDelay    =status==='延遲';
+    const isDone     =status==='已完成';
+    const behindHtml =isDelay
+      ?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>'
+      :'<span style="color:#9ca3af;font-size:11px">—</span>';
 
     const tr=document.createElement('tr');
     if(isDelay)tr.className='row-delay';
     else if(isDone)tr.className='row-done';
-    tr.dataset.cat=CATS[ci].name;tr.dataset.bldg=row.bldg;tr.dataset.status=status;tr.dataset.item=row.item;
+    tr.dataset.cat=CATS[ci].name;
+    tr.dataset.bldg=row.bldg;
+    tr.dataset.status=status;
+    tr.dataset.item=row.item;
 
     tr.innerHTML=`
       <td class="c-no">${ii+1}</td>
       <td class="c-item">
         <div class="item-name">${row.item}</div>
-        ${row.note?`<div class="item-sub">${row.note}</div>`:''}
+        ${note?`<div class="item-sub">${note}</div>`:''}
       </td>
       <td class="c-bldg"><span class="btag">${row.bldg}</span></td>
-      <td class="c-status"><span class="badge ${SC[status]}" onclick="cycleStatus(${ci},${ii},this)">${status}</span></td>
+      <td class="c-status">
+        <span class="badge ${SC[status]||'b-ing'}" onclick="cycleStatus(${ci},${ii},this)">${status}</span>
+      </td>
       <td class="c-date">
         <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}"
-          title="可直接修改預計完成日期，修改後底色變黃"
+          title="可直接修改預計完成日期"
           onblur="updatePlanEnd(${ci},${ii},this.value,this)"
-          onkeydown="if(event.key==='Enter')this.blur();">
+          onkeydown="if(event.key==='Enter')this.blur()">
       </td>
       <td class="c-date">
         <div class="ed" contenteditable="true"
@@ -393,8 +718,12 @@ function renderTbody(ci){
       </td>
       <td class="c-pct">
         <div class="pct-wrap">
-          <div class="pct-bar"><div class="pct-fill" id="pf_${ci}_${ii}" style="width:${pct}%;background:${pc(pct)}"></div></div>
-          <input class="pct-input" type="number" min="0" max="100" value="${pct}" oninput="updPct(${ci},${ii},this.value)">
+          <div class="pct-bar">
+            <div class="pct-fill" id="pf_${ci}_${ii}"
+              style="width:${pct}%;background:${pc(pct)}"></div>
+          </div>
+          <input class="pct-input" type="number" min="0" max="100" value="${pct}"
+            oninput="updPct(${ci},${ii},this.value)">
         </div>
       </td>
       <td>${behindHtml}</td>
@@ -433,7 +762,7 @@ function renderTbody(ci){
       </td>
       <td>
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'note',this.innerText.trim());"
+          onblur="sv(${ci},${ii},'note',this.innerText.trim());rerenderSub(${ci},${ii},this.innerText.trim());"
         >${note}</div>
       </td>`;
     tbody.appendChild(tr);
@@ -441,29 +770,50 @@ function renderTbody(ci){
   updSecPct(ci);
 }
 
+function rerenderSub(ci,ii,txt){
+  const tbody=document.getElementById(`tb_${ci}`);
+  const tr=tbody.children[ii];
+  if(!tr)return;
+  const sub=tr.querySelector('.item-sub');
+  if(txt){
+    if(sub)sub.textContent=txt;
+    else{const d=document.createElement('div');d.className='item-sub';d.textContent=txt;tr.querySelector('.item-name').after(d);}
+  } else if(sub) sub.remove();
+}
+
 function updPct(ci,ii,val){
   const v=Math.min(100,Math.max(0,+val||0));
   sv(ci,ii,'pct',v);
   const f=document.getElementById(`pf_${ci}_${ii}`);
   if(f){f.style.width=v+'%';f.style.background=pc(v);}
-  updateStats();updSecPct(ci);
+  updateStats(); updSecPct(ci);
+}
+
+function updatePlanEnd(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'planEnd',v);
+  const metaPE=(META[SK(ci,ii)]||{}).planEnd||'';
+  el.classList.toggle('modified',!!(v&&v!==metaPE));
+  updateStats(); updSecPct(ci);
 }
 
 function cycleStatus(ci,ii,el){
-  const next=SL[(SL.indexOf(gv(ci,ii,'status'))+1)%SL.length];
+  const cur=gv(ci,ii,'status');
+  const next=SL[(SL.indexOf(cur)+1)%SL.length];
   sv(ci,ii,'status',next);
-  el.className=`badge ${SC[next]}`;el.textContent=next;
+  el.className=`badge ${SC[next]||'b-ing'}`;
+  el.textContent=next;
   const tr=el.closest('tr');
   tr.className=next==='延遲'?'row-delay':next==='已完成'?'row-done':'';
   tr.dataset.status=next;
-  updateStats();updSecPct(ci);
+  updateStats(); updSecPct(ci);
 }
 
 function updSecPct(ci){
   const items=CATS[ci].items;
   const avg=Math.round(items.reduce((s,_,ii)=>s+(+gv(ci,ii,'pct')||0),0)/items.length);
   const el=document.getElementById(`sp_${ci}`);
-  if(el)el.textContent=`${avg}%`;
+  if(el)el.textContent=avg+'%';
 }
 
 function toggleSec(head){
@@ -476,25 +826,41 @@ function updateStats(){
   let done=0,ing=0,wait=0,delay=0,apply=0,aMP=0,tMP=0;
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
     const s=gv(ci,ii,'status');
-    if(s==='已完成')done++;else if(s==='進行中')ing++;else if(s==='待施工')wait++;else if(s==='延遲')delay++;else if(s==='待申請')apply++;
+    if(s==='已完成')done++;
+    else if(s==='進行中')ing++;
+    else if(s==='待施工')wait++;
+    else if(s==='延遲')delay++;
+    else if(s==='待申請')apply++;
     aMP+=+gv(ci,ii,'actualMP')||0;
     tMP+=+gv(ci,ii,'tomorrowMP')||0;
   }));
-  const total=done+ing+wait+delay+apply;
+  const total=done+ing+wait+delay+apply||1;
   document.getElementById('statstrip').innerHTML=`
     <div class="stat"><span class="stat-num" style="color:#065f46">${done}</span>&nbsp;已完成</div>
     <div class="stat"><span class="stat-num" style="color:#1e40af">${ing}</span>&nbsp;進行中</div>
     <div class="stat"><span class="stat-num" style="color:#92400e">${wait}</span>&nbsp;待施工</div>
     <div class="stat"><span class="stat-num" style="color:#991b1b">${delay}</span>&nbsp;延遲</div>
     <div class="stat"><span class="stat-num" style="color:#5b21b6">${apply}</span>&nbsp;待申請</div>
-    <div class="stat" style="margin-left:8px;border-left:2px solid #d1d5db;padding-left:16px;">本日出工&nbsp;<span class="stat-num" style="color:#1e3a5f">${aMP}</span>&nbsp;人</div>
-    <div class="stat">明日預計出工&nbsp;<span class="stat-num" style="color:#15803d">${tMP}</span>&nbsp;人</div>
-    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">整體完成率&nbsp;<span class="stat-num" style="color:#1e3a5f">${Math.round(done/total*100)}%</span>&nbsp;<span style="font-size:11px;color:#9ca3af">(${done}/${total})</span></div>`;
+    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">
+      本日出工&nbsp;<span class="stat-num" style="color:#1e3a5f">${aMP}</span>&nbsp;人
+    </div>
+    <div class="stat">
+      明日預計&nbsp;<span class="stat-num" style="color:#15803d">${tMP}</span>&nbsp;人
+    </div>
+    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">
+      整體完成率&nbsp;<span class="stat-num" style="color:#1e3a5f">${Math.round(done/total*100)}%</span>
+      &nbsp;<span style="font-size:11px;color:#9ca3af">(${done}/${total})</span>
+    </div>`;
 }
 
+// ══════════════════════════════════════════════════
+// 篩選
+// ══════════════════════════════════════════════════
 function applyFilter(){
-  const fc=document.getElementById('f-cat').value,fs=document.getElementById('f-status').value;
-  const fb=document.getElementById('f-bldg').value,fq=document.getElementById('f-search').value.toLowerCase();
+  const fc=document.getElementById('f-cat').value;
+  const fs=document.getElementById('f-status').value;
+  const fb=document.getElementById('f-bldg').value;
+  const fq=document.getElementById('f-search').value.toLowerCase();
   document.querySelectorAll('.sec').forEach(sec=>{
     if(fc&&sec.dataset.cat!==fc){sec.style.display='none';return;}
     sec.style.display='';
@@ -513,34 +879,36 @@ function resetFilter(){
   applyFilter();
 }
 
+// ══════════════════════════════════════════════════
+// CSV 匯出
+// ══════════════════════════════════════════════════
 function exportCSV(){
-  const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%','本日出工數','明日預計出工數','與原預計差異','本日施工內容','明天預定工作','延遲原因／對策','異常原因說明','備註']];
+  const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%',
+               '本日出工','明日預計出工','差異','本日施工','明日工作','延遲原因','異常說明','備註']];
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
-    rows.push([
-      cat.name, CATS[ci].items[ii].item, CATS[ci].items[ii].bldg,
-      gv(ci,ii,'status'), gv(ci,ii,'planEnd'), gv(ci,ii,'actualEnd'), gv(ci,ii,'pct'),
-      gv(ci,ii,'actualMP'), gv(ci,ii,'tomorrowMP'), gv(ci,ii,'diff'),
-      gv(ci,ii,'todayWork'), gv(ci,ii,'tomorrowWork'),
-      gv(ci,ii,'issue'), gv(ci,ii,'abnormal'), gv(ci,ii,'note'),
-    ]);
+    rows.push([cat.name,CATS[ci].items[ii].item,CATS[ci].items[ii].bldg,
+      gv(ci,ii,'status'),gv(ci,ii,'planEnd'),gv(ci,ii,'actualEnd'),gv(ci,ii,'pct'),
+      gv(ci,ii,'actualMP'),gv(ci,ii,'tomorrowMP'),gv(ci,ii,'diff'),
+      gv(ci,ii,'todayWork'),gv(ci,ii,'tomorrowWork'),
+      gv(ci,ii,'issue'),gv(ci,ii,'abnormal'),gv(ci,ii,'note')]);
   }));
   const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download=`前鎮亞灣工項追蹤_${document.getElementById('mtgDate').value.replace(/-/g,'')}.csv`;
   a.click();
-  showToast('CSV 已匯出');
+  toast('CSV 已匯出','ok');
 }
 
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000);
-}
-
-loadState();
-renderAll();
-setInterval(saveData,60000);
+// ══════════════════════════════════════════════════
+// 啟動
+// ══════════════════════════════════════════════════
+(async()=>{
+  renderAll();
+  await loadMeta();
+  await refreshPicker();
+  renderAll();
+})();
 </script>
 </body>
 </html>
