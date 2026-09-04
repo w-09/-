@@ -65,15 +65,13 @@
   table{width:100%;border-collapse:collapse;font-size:12px;}
   thead th{background:#f8fafc;color:#374151;font-weight:700;padding:6px 8px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;}
   thead th.left{text-align:left;}
-  thead .th-grp{background:#f1f5f9;font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.3px;}
-  thead .th-grp th{background:#f1f5f9;}
+  thead .th-grp th{background:#f1f5f9;font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.3px;}
   tbody td{padding:5px 7px;border:1px solid #e5e7eb;vertical-align:middle;}
   tbody tr:hover{background:#f9fafb;}
   tbody tr.row-delay{background:#fef2f2;}
   tbody tr.row-delay:hover{background:#fee2e2;}
   tbody tr.row-done td{color:#6b7280;}
 
-  /* 時程欄群組底色 */
   .th-sch{background:#e0f2fe !important;color:#0369a1 !important;}
   td.td-sch{background:#f0f9ff;}
   tbody tr.row-delay td.td-sch{background:#fde8e8;}
@@ -82,7 +80,7 @@
   .c-no{width:26px;text-align:center;color:#9ca3af;font-size:11px;}
   .c-item{min-width:120px;}
   .c-bldg{width:44px;text-align:center;}
-  .c-status{width:68px;text-align:center;}
+  .c-status{width:72px;text-align:center;}
   .c-date{width:80px;text-align:center;font-size:11px;}
   .c-pct{width:108px;}
   .c-mp{width:54px;text-align:center;}
@@ -257,7 +255,7 @@
 
 <script>
 // ══════════════════════════════════════════════════
-// API
+// API 設定
 // ══════════════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycbwjwsbt9stBqeCtOL8kxGq_PWjY-4ncZl8UbxuqgoxVCEG_BJfWKqMrado2u-r5G_yS/exec';
 
@@ -266,43 +264,50 @@ const CAT_COLORS = [
   '#451a03','#422006','#7f1d1d','#0f4c75','#1a1a2e','#2d6a4f'
 ];
 
-let CATS  = [];
-let STATE = {};
-let META  = {};
+let CATS  = [];   // 工項主檔（類別+工項）
+let STATE = {};   // 本次會議填寫的資料
+let META  = {};   // 工項主檔預設值（planStart, planEnd, status, note）
 
-const SK  = (ci,ii) => `${ci}_${ii}`;
-const SL  = ['已完成','進行中','待施工','延遲','待申請'];
-const SC  = {'已完成':'b-done','進行中':'b-ing','待施工':'b-wait','延遲':'b-delay','待申請':'b-apply'};
-const pc  = p => p===100?'#15803d':p>=70?'#1d4ed8':p>=40?'#d97706':'#dc2626';
+const SK = (ci,ii) => `${ci}_${ii}`;
+const SL = ['已完成','進行中','待施工','延遲','待申請'];
+const SC = {'已完成':'b-done','進行中':'b-ing','待施工':'b-wait','延遲':'b-delay','待申請':'b-apply'};
+const pc = p => p===100?'#15803d':p>=70?'#1d4ed8':p>=40?'#d97706':'#dc2626';
 
+// ── 取值（STATE優先，再從META，最後預設）──
 function gv(ci,ii,k){
-  const s=STATE[SK(ci,ii)]; if(s&&s[k]!==undefined)return s[k];
-  const m=META[SK(ci,ii)];  if(m&&m[k]!==undefined)return m[k];
+  const s=STATE[SK(ci,ii)];
+  if(s && s[k]!==undefined && s[k]!=='') return s[k];
+  const m=META[SK(ci,ii)];
+  if(m && m[k]!==undefined && m[k]!=='') return m[k];
   const def={
-    pct:0,actualMP:0,tomorrowMP:0,
-    diff:'',todayWork:'',tomorrowWork:'',
-    issue:'',abnormal:'',note:'',
-    planStart:'',actualStart:'',
-    planEnd:'',actualEnd:'',
+    pct:0, actualMP:0, tomorrowMP:0,
+    diff:'', todayWork:'', tomorrowWork:'',
+    issue:'', abnormal:'', note:'',
+    planStart:'', actualStart:'',
+    planEnd:'', actualEnd:'',
     status:'進行中'
   };
   return def[k]??'';
 }
+
+// ── 寫值到 STATE ──
 function sv(ci,ii,k,v){
-  if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};
+  if(!STATE[SK(ci,ii)]) STATE[SK(ci,ii)]={};
   STATE[SK(ci,ii)][k]=v;
 }
 
-// ── UI Helpers ──
+// ══════════════════════════════════════════════════
+// UI Helpers
+// ══════════════════════════════════════════════════
 function loading(msg='處理中...'){
   document.getElementById('overlayMsg').textContent=msg;
   document.getElementById('overlay').classList.add('on');
 }
-function unload(){document.getElementById('overlay').classList.remove('on');}
+function unload(){ document.getElementById('overlay').classList.remove('on'); }
 function toast(msg,type=''){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.className=type;t.style.opacity='1';
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2800);
+  t.textContent=msg; t.className=type; t.style.opacity='1';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.opacity='0',2800);
 }
 function sync(st,txt=''){
   document.getElementById('syncDot').className='sync-dot '+st;
@@ -310,27 +315,31 @@ function sync(st,txt=''){
 }
 function badge(txt){
   const el=document.getElementById('dateBadge');
-  if(txt){el.textContent=txt;el.style.display='';}
+  if(txt){ el.textContent=txt; el.style.display=''; }
   else el.style.display='none';
 }
 
-// ── Fetch ──
-async function GET(p){const r=await fetch(API+'?'+new URLSearchParams(p));return r.json();}
-async function POST(b){const r=await fetch(API,{method:'POST',body:JSON.stringify(b)});return r.json();}
+// ══════════════════════════════════════════════════
+// Fetch 工具
+// ══════════════════════════════════════════════════
+async function GET(p){ const r=await fetch(API+'?'+new URLSearchParams(p)); return r.json(); }
+async function POST(b){ const r=await fetch(API,{method:'POST',body:JSON.stringify(b)}); return r.json(); }
 
 // ══════════════════════════════════════════════════
-// 動態載入工項主檔
+// 載入工項主檔（含 planStart ★）
 // ══════════════════════════════════════════════════
 async function loadMeta(){
   try{
     const r=await GET({action:'getItems'});
-    if(!r.ok||!r.items||!r.items.length)return false;
+    if(!r.ok||!r.items||!r.items.length) return false;
+
     const catMap=new Map();
     r.items.forEach(it=>{
       const ci=Number(it.catIndex);
-      if(!catMap.has(ci))catMap.set(ci,{name:it.catName,color:CAT_COLORS[ci%CAT_COLORS.length],items:[]});
-      catMap.get(ci).items[Number(it.itemIndex)]={item:it.item,bldg:it.bldg};
+      if(!catMap.has(ci)) catMap.set(ci,{name:it.catName,color:CAT_COLORS[ci%CAT_COLORS.length],items:[]});
+      catMap.get(ci).items[Number(it.itemIndex)]={item:it.item, bldg:it.bldg};
     });
+
     CATS=[];
     const maxCi=Math.max(...catMap.keys());
     for(let ci=0;ci<=maxCi;ci++){
@@ -340,14 +349,23 @@ async function loadMeta(){
         CATS.push(cat);
       }
     }
+
+    // ★ META 同時儲存 planStart（來自工項主檔 G 欄）
     META={};
     r.items.forEach(it=>{
-      const ci=Number(it.catIndex),ii=Number(it.itemIndex);
-      META[SK(ci,ii)]={planEnd:String(it.planEnd||''),status:it.defaultStatus||'進行中',note:it.note||''};
+      const ci=Number(it.catIndex), ii=Number(it.itemIndex);
+      META[SK(ci,ii)]={
+        planStart:     String(it.planStart||''),   // ★ 新增
+        planEnd:       String(it.planEnd||''),
+        defaultStatus: it.defaultStatus||'進行中',
+        status:        it.defaultStatus||'進行中',
+        note:          it.note||''
+      };
     });
+
     _refreshCatFilter();
     return true;
-  }catch(e){console.error(e);return false;}
+  }catch(e){ console.error(e); return false; }
 }
 
 function _refreshCatFilter(){
@@ -355,7 +373,7 @@ function _refreshCatFilter(){
   sel.innerHTML='<option value="">全部</option>';
   CATS.forEach(cat=>{
     const o=document.createElement('option');
-    o.value=cat.name;o.textContent=cat.name;
+    o.value=cat.name; o.textContent=cat.name;
     sel.appendChild(o);
   });
 }
@@ -375,7 +393,7 @@ async function doReloadItems(){
       sync('fail','載入失敗');
       toast('工項載入失敗，請確認已執行「初始化試算表」','err');
     }
-  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
+  }catch(e){ unload(); sync('fail','連線失敗'); toast('連線失敗：'+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════════
@@ -388,10 +406,10 @@ async function doInit(){
     unload();
     if(r.ok){
       toast('✓ '+r.msg,'ok');
-      await Promise.all([loadMeta(),refreshPicker()]);
+      await Promise.all([loadMeta(), refreshPicker()]);
       renderAll();
     }else toast('錯誤：'+(r.error||r.msg),'err');
-  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+  }catch(e){ unload(); toast('連線失敗：'+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════════
@@ -400,7 +418,7 @@ async function doInit(){
 async function refreshPicker(){
   try{
     const r=await GET({action:'getMeetings'});
-    if(!r.ok)return;
+    if(!r.ok) return;
     const sel=document.getElementById('mtgPicker');
     sel.innerHTML='<option value="">— 選擇歷史會議 —</option>';
     (r.meetings||[]).forEach(m=>{
@@ -414,7 +432,7 @@ async function refreshPicker(){
 
 async function onPick(){
   const d=document.getElementById('mtgPicker').value;
-  if(!d)return;
+  if(!d) return;
   document.getElementById('mtgDate').value=d;
   await loadDate(d);
 }
@@ -425,21 +443,21 @@ async function onPick(){
 async function doRange(){
   const from=document.getElementById('dateFrom').value;
   const to=document.getElementById('dateTo').value;
-  if(!from||!to){toast('請選擇日期範圍','err');return;}
+  if(!from||!to){ toast('請選擇日期範圍','err'); return; }
   loading(`查詢 ${from} ～ ${to}...`);
   try{
     const r=await GET({action:'getRecords',dateFrom:from,dateTo:to});
     unload();
-    if(!r.ok){toast('查詢失敗：'+(r.error||''),'err');return;}
+    if(!r.ok){ toast('查詢失敗：'+(r.error||''),'err'); return; }
     const dates=[...new Set((r.records||[]).map(x=>x.mtgDate))].filter(Boolean).sort();
     const bar=document.getElementById('rangeBar');
     const btns=document.getElementById('rangeBtns');
-    if(!dates.length){bar.classList.remove('show');badge('此區間無資料');toast('此日期範圍無資料','err');return;}
+    if(!dates.length){ bar.classList.remove('show'); badge('此區間無資料'); toast('此日期範圍無資料','err'); return; }
     bar.classList.add('show');
     btns.innerHTML='';
     dates.forEach(d=>{
       const btn=document.createElement('button');
-      btn.className='rdate-btn';btn.textContent=d;
+      btn.className='rdate-btn'; btn.textContent=d;
       btn.onclick=async()=>{
         document.querySelectorAll('.rdate-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
@@ -447,7 +465,7 @@ async function doRange(){
         applyRecords((r.records||[]).filter(x=>x.mtgDate===d));
         badge(`已載入：${d}`);
         const mr=await GET({action:'getMeetings'});
-        if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===d);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
+        if(mr.ok){ const m=(mr.meetings||[]).find(x=>x.mtgDate===d); if(m){ document.getElementById('mtgWeek').value=m.mtgWeek||''; document.getElementById('mtgHost').value=m.mtgHost||''; document.getElementById('mtgRec').value=m.mtgRec||''; } }
       };
       btns.appendChild(btn);
     });
@@ -458,8 +476,8 @@ async function doRange(){
     badge(`共 ${dates.length} 筆，已載入最新：${latest}`);
     toast(`找到 ${dates.length} 筆會議，已載入最新一筆`,'ok');
     const mr=await GET({action:'getMeetings'});
-    if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===latest);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
-  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+    if(mr.ok){ const m=(mr.meetings||[]).find(x=>x.mtgDate===latest); if(m){ document.getElementById('mtgWeek').value=m.mtgWeek||''; document.getElementById('mtgHost').value=m.mtgHost||''; document.getElementById('mtgRec').value=m.mtgRec||''; } }
+  }catch(e){ unload(); toast('連線失敗：'+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════════
@@ -470,18 +488,20 @@ async function loadDate(date){
   try{
     const [recR,mtgR]=await Promise.all([GET({action:'getRecords',date}),GET({action:'getMeetings'})]);
     unload();
-    if(!recR.ok){toast('載入失敗：'+(recR.error||''),'err');return;}
+    if(!recR.ok){ toast('載入失敗：'+(recR.error||''),'err'); return; }
     applyRecords(recR.records||[]);
-    if(mtgR.ok){const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
+    if(mtgR.ok){ const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date); if(m){ document.getElementById('mtgWeek').value=m.mtgWeek||''; document.getElementById('mtgHost').value=m.mtgHost||''; document.getElementById('mtgRec').value=m.mtgRec||''; } }
     badge(`已載入：${date}（${(recR.records||[]).length} 筆）`);
     toast(`${date} 資料已載入`,'ok');
-  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+  }catch(e){ unload(); toast('連線失敗：'+e.message,'err'); }
 }
 
+// ★ 套用雲端紀錄（備註說明直接複寫 META）
 function applyRecords(records){
   STATE={};
   (records||[]).forEach(r=>{
-    STATE[SK(r.catIndex,r.itemIndex)]={
+    const key=SK(r.catIndex,r.itemIndex);
+    STATE[key]={
       status:       r.status||'進行中',
       planStart:    String(r.planStart||''),
       actualStart:  String(r.actualStart||''),
@@ -495,7 +515,7 @@ function applyRecords(records){
       tomorrowWork: r.tomorrowWork||'',
       issue:        r.issue||'',
       abnormal:     r.abnormal||'',
-      note:         r.note||'',
+      note:         r.note||''   // ★ 備註直接複寫
     };
   });
   renderAll();
@@ -505,7 +525,7 @@ function applyRecords(records){
 // 新會議
 // ══════════════════════════════════════════════════
 function doNew(){
-  if(!confirm('開新會議將清空目前畫面（未儲存資料將遺失），確定？'))return;
+  if(!confirm('開新會議將清空目前畫面（未儲存資料將遺失），確定？')) return;
   STATE={};
   document.getElementById('mtgDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('mtgWeek').value='';
@@ -522,49 +542,50 @@ function doNew(){
 // ══════════════════════════════════════════════════
 async function doSave(){
   const mtgDate=document.getElementById('mtgDate').value;
-  if(!mtgDate){toast('請選擇會議日期','err');return;}
+  if(!mtgDate){ toast('請選擇會議日期','err'); return; }
   sync('syncing','儲存中...');
   loading('儲存至 Google Sheets...');
   try{
-    await POST({action:'saveMeeting',mtgDate,
-      mtgWeek:document.getElementById('mtgWeek').value,
-      mtgHost:document.getElementById('mtgHost').value,
-      mtgRec: document.getElementById('mtgRec').value,
+    await POST({action:'saveMeeting', mtgDate,
+      mtgWeek: document.getElementById('mtgWeek').value,
+      mtgHost: document.getElementById('mtgHost').value,
+      mtgRec:  document.getElementById('mtgRec').value,
     });
     const records=[];
     CATS.forEach((cat,ci)=>{
       cat.items.forEach((_,ii)=>{
         records.push({
-          catIndex:    ci,   itemIndex:   ii,
-          status:      gv(ci,ii,'status'),
-          planStart:   gv(ci,ii,'planStart'),
-          actualStart: gv(ci,ii,'actualStart'),
-          planEnd:     gv(ci,ii,'planEnd'),
-          actualEnd:   gv(ci,ii,'actualEnd'),
-          pct:         gv(ci,ii,'pct'),
-          actualMP:    gv(ci,ii,'actualMP'),
-          tomorrowMP:  gv(ci,ii,'tomorrowMP'),
-          diff:        gv(ci,ii,'diff'),
-          todayWork:   gv(ci,ii,'todayWork'),
-          tomorrowWork:gv(ci,ii,'tomorrowWork'),
-          issue:       gv(ci,ii,'issue'),
-          abnormal:    gv(ci,ii,'abnormal'),
-          note:        gv(ci,ii,'note'),
+          catIndex:     ci,
+          itemIndex:    ii,
+          status:       gv(ci,ii,'status'),
+          planStart:    gv(ci,ii,'planStart'),
+          actualStart:  gv(ci,ii,'actualStart'),
+          planEnd:      gv(ci,ii,'planEnd'),
+          actualEnd:    gv(ci,ii,'actualEnd'),
+          pct:          gv(ci,ii,'pct'),
+          actualMP:     gv(ci,ii,'actualMP'),
+          tomorrowMP:   gv(ci,ii,'tomorrowMP'),
+          diff:         gv(ci,ii,'diff'),
+          todayWork:    gv(ci,ii,'todayWork'),
+          tomorrowWork: gv(ci,ii,'tomorrowWork'),
+          issue:        gv(ci,ii,'issue'),
+          abnormal:     gv(ci,ii,'abnormal'),
+          note:         gv(ci,ii,'note'),
         });
       });
     });
-    const r=await POST({action:'saveBatch',mtgDate,records});
+    const r=await POST({action:'saveBatch', mtgDate, records});
     unload();
     if(r.ok){
       sync('ok',`已儲存 ${r.total} 筆`);
       toast(`✓ 儲存成功（更新 ${r.updated} / 新增 ${r.inserted}）`,'ok');
       await refreshPicker();
-    }else{sync('fail','儲存失敗');toast('儲存失敗：'+(r.error||''),'err');}
-  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
+    }else{ sync('fail','儲存失敗'); toast('儲存失敗：'+(r.error||''),'err'); }
+  }catch(e){ unload(); sync('fail','連線失敗'); toast('連線失敗：'+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════════
-// 渲染
+// 渲染全部
 // ══════════════════════════════════════════════════
 function renderAll(){
   if(!CATS.length){
@@ -572,13 +593,13 @@ function renderAll(){
       <div style="text-align:center;padding:60px;color:#94a3b8;font-size:14px;">
         ⚠️ 尚未載入工項，請按「🔄 重新載入工項」或「🗄 初始化試算表」
       </div>`;
-    updateStats();return;
+    updateStats(); return;
   }
   const wrap=document.getElementById('mainWrap');
   wrap.innerHTML='';
   CATS.forEach((cat,ci)=>{
     const sec=document.createElement('div');
-    sec.className='sec';sec.dataset.cat=cat.name;
+    sec.className='sec'; sec.dataset.cat=cat.name;
     sec.innerHTML=`
       <div class="sec-head" style="background:${cat.color}" onclick="toggleSec(this)">
         <div class="sec-head-left">
@@ -631,33 +652,43 @@ function renderAll(){
   updateStats();
 }
 
+// ══════════════════════════════════════════════════
+// 渲染 tbody
+// ══════════════════════════════════════════════════
 function renderTbody(ci){
   const tbody=document.getElementById(`tb_${ci}`);
-  if(!tbody)return;
+  if(!tbody) return;
   tbody.innerHTML='';
   CATS[ci].items.forEach((row,ii)=>{
-    const pct         =+gv(ci,ii,'pct')||0;
-    const status      =gv(ci,ii,'status')||'進行中';
-    const planStart   =gv(ci,ii,'planStart')||'';
-    const actualStart =gv(ci,ii,'actualStart')||'';
-    const planEnd     =gv(ci,ii,'planEnd')||'';
-    const actualEnd   =gv(ci,ii,'actualEnd')||'';
-    const actualMP    =+gv(ci,ii,'actualMP')||0;
-    const tomorrowMP  =+gv(ci,ii,'tomorrowMP')||0;
-    const diff        =gv(ci,ii,'diff')||'';
-    const todayWork   =gv(ci,ii,'todayWork')||'';
-    const tomorrowWork=gv(ci,ii,'tomorrowWork')||'';
-    const iss         =gv(ci,ii,'issue')||'';
-    const abnormal    =gv(ci,ii,'abnormal')||'';
-    const note        =gv(ci,ii,'note')||'';
-    const metaPE      =(META[SK(ci,ii)]||{}).planEnd||'';
-    const isModified  =planEnd&&planEnd!==metaPE;
-    const isDelay     =status==='延遲';
-    const isDone      =status==='已完成';
+    const pct          = +gv(ci,ii,'pct')||0;
+    const status       = gv(ci,ii,'status')||'進行中';
+    const planStart    = gv(ci,ii,'planStart')||'';
+    const actualStart  = gv(ci,ii,'actualStart')||'';
+    const planEnd      = gv(ci,ii,'planEnd')||'';
+    const actualEnd    = gv(ci,ii,'actualEnd')||'';
+    const actualMP     = +gv(ci,ii,'actualMP')||0;
+    const tomorrowMP   = +gv(ci,ii,'tomorrowMP')||0;
+    const diff         = gv(ci,ii,'diff')||'';
+    const todayWork    = gv(ci,ii,'todayWork')||'';
+    const tomorrowWork = gv(ci,ii,'tomorrowWork')||'';
+    const iss          = gv(ci,ii,'issue')||'';
+    const abnormal     = gv(ci,ii,'abnormal')||'';
+    const note         = gv(ci,ii,'note')||'';
+
+    // 預計完成日：與主檔不同時標黃
+    const metaPE      = (META[SK(ci,ii)]||{}).planEnd||'';
+    const isPEModified = planEnd && planEnd!==metaPE;
+
+    // 預定開始日：與主檔不同時標黃
+    const metaPS      = (META[SK(ci,ii)]||{}).planStart||'';
+    const isPSModified = planStart && planStart!==metaPS;
+
+    const isDelay = status==='延遲';
+    const isDone  = status==='已完成';
 
     const tr=document.createElement('tr');
-    if(isDelay)tr.className='row-delay';
-    else if(isDone)tr.className='row-done';
+    if(isDelay) tr.className='row-delay';
+    else if(isDone) tr.className='row-done';
     tr.dataset.cat=CATS[ci].name;
     tr.dataset.bldg=row.bldg;
     tr.dataset.status=status;
@@ -674,9 +705,9 @@ function renderTbody(ci){
         <span class="badge ${SC[status]||'b-ing'}" onclick="cycleStatus(${ci},${ii},this)">${status}</span>
       </td>
       <td class="c-date td-sch">
-        <input class="date-in" type="text" value="${planStart}" placeholder="MM/DD"
-          title="預定開始日期"
-          onblur="sv(${ci},${ii},'planStart',this.value.trim())"
+        <input class="date-in${isPSModified?' modified':''}" type="text" value="${planStart}" placeholder="MM/DD"
+          title="預定開始日（主檔：${metaPS||'未設定'}）"
+          onblur="updatePlanStart(${ci},${ii},this.value,this)"
           onkeydown="if(event.key==='Enter')this.blur()">
       </td>
       <td class="c-date td-sch">
@@ -686,8 +717,8 @@ function renderTbody(ci){
           onkeydown="if(event.key==='Enter')this.blur()">
       </td>
       <td class="c-date td-sch">
-        <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}" placeholder="MM/DD"
-          title="預計完成日期"
+        <input class="date-in${isPEModified?' modified':''}" type="text" value="${planEnd}" placeholder="MM/DD"
+          title="預計完成日（主檔：${metaPE||'未設定'}）"
           onblur="updatePlanEnd(${ci},${ii},this.value,this)"
           onkeydown="if(event.key==='Enter')this.blur()">
       </td>
@@ -740,34 +771,65 @@ function renderTbody(ci){
       </td>
       <td>
         <div class="ed" contenteditable="true"
-          onblur="sv(${ci},${ii},'note',this.innerText.trim());">${note}</div>
+          onblur="sv(${ci},${ii},'note',this.innerText.trim());rerenderNote(${ci},${ii},this.innerText.trim());">${note}</div>
       </td>`;
     tbody.appendChild(tr);
   });
   updSecPct(ci);
 }
 
+// ══════════════════════════════════════════════════
+// 欄位更新函式
+// ══════════════════════════════════════════════════
+
+// 預定開始日（與主檔不同時標黃）★
+function updatePlanStart(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'planStart',v);
+  const metaPS=(META[SK(ci,ii)]||{}).planStart||'';
+  el.classList.toggle('modified',!!(v && v!==metaPS));
+}
+
+// 實際開始日（有值時標綠）
 function updateActualStart(ci,ii,val,el){
   const v=val.trim();
   sv(ci,ii,'actualStart',v);
   el.classList.toggle('has-val',!!v);
 }
 
-function updPct(ci,ii,val){
-  const v=Math.min(100,Math.max(0,+val||0));
-  sv(ci,ii,'pct',v);
-  const f=document.getElementById(`pf_${ci}_${ii}`);
-  if(f){f.style.width=v+'%';f.style.background=pc(v);}
-  updateStats();updSecPct(ci);
-}
-
+// 預計完成日（與主檔不同時標黃）
 function updatePlanEnd(ci,ii,val,el){
   const v=val.trim();
   sv(ci,ii,'planEnd',v);
   const metaPE=(META[SK(ci,ii)]||{}).planEnd||'';
-  el.classList.toggle('modified',!!(v&&v!==metaPE));
+  el.classList.toggle('modified',!!(v && v!==metaPE));
 }
 
+// 備註更新後同步顯示在工項名稱下方
+function rerenderNote(ci,ii,note){
+  const tbody=document.getElementById(`tb_${ci}`);
+  if(!tbody) return;
+  const tr=tbody.querySelectorAll('tr')[ii];
+  if(!tr) return;
+  const nameCell=tr.querySelector('.c-item');
+  if(!nameCell) return;
+  const sub=nameCell.querySelector('.item-sub');
+  if(note){
+    if(sub) sub.textContent=note;
+    else { const d=document.createElement('div'); d.className='item-sub'; d.textContent=note; nameCell.appendChild(d); }
+  }else if(sub) sub.remove();
+}
+
+// 完成率
+function updPct(ci,ii,val){
+  const v=Math.min(100,Math.max(0,+val||0));
+  sv(ci,ii,'pct',v);
+  const f=document.getElementById(`pf_${ci}_${ii}`);
+  if(f){ f.style.width=v+'%'; f.style.background=pc(v); }
+  updateStats(); updSecPct(ci);
+}
+
+// 狀態循環
 function cycleStatus(ci,ii,el){
   const cur=gv(ci,ii,'status');
   const next=SL[(SL.indexOf(cur)+1)%SL.length];
@@ -777,32 +839,42 @@ function cycleStatus(ci,ii,el){
   const tr=el.closest('tr');
   tr.className=next==='延遲'?'row-delay':next==='已完成'?'row-done':'';
   tr.dataset.status=next;
-  updateStats();updSecPct(ci);
+  // 更新落後欄
+  const delayCell=tr.cells[9];
+  if(delayCell) delayCell.innerHTML=next==='延遲'
+    ?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>'
+    :'<span style="color:#9ca3af;font-size:11px">—</span>';
+  updateStats(); updSecPct(ci);
 }
 
+// 類別平均完成率
 function updSecPct(ci){
   const items=CATS[ci]?CATS[ci].items:[];
-  if(!items.length)return;
+  if(!items.length) return;
   const avg=Math.round(items.reduce((s,_,ii)=>s+(+gv(ci,ii,'pct')||0),0)/items.length);
   const el=document.getElementById(`sp_${ci}`);
-  if(el)el.textContent=avg+'%';
+  if(el) el.textContent=avg+'%';
 }
 
+// 展開/收合
 function toggleSec(head){
   head.classList.toggle('collapsed');
   const b=head.nextElementSibling;
   b.style.display=b.style.display==='none'?'':'none';
 }
 
+// ══════════════════════════════════════════════════
+// 統計列
+// ══════════════════════════════════════════════════
 function updateStats(){
   let done=0,ing=0,wait=0,delay=0,apply=0,aMP=0,tMP=0;
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
     const s=gv(ci,ii,'status');
-    if(s==='已完成')done++;
-    else if(s==='進行中')ing++;
-    else if(s==='待施工')wait++;
-    else if(s==='延遲')delay++;
-    else if(s==='待申請')apply++;
+    if(s==='已完成') done++;
+    else if(s==='進行中') ing++;
+    else if(s==='待施工') wait++;
+    else if(s==='延遲') delay++;
+    else if(s==='待申請') apply++;
     aMP+=+gv(ci,ii,'actualMP')||0;
     tMP+=+gv(ci,ii,'tomorrowMP')||0;
   }));
@@ -825,19 +897,22 @@ function updateStats(){
     </div>`;
 }
 
+// ══════════════════════════════════════════════════
+// 篩選
+// ══════════════════════════════════════════════════
 function applyFilter(){
   const fc=document.getElementById('f-cat').value;
   const fs=document.getElementById('f-status').value;
   const fb=document.getElementById('f-bldg').value;
   const fq=document.getElementById('f-search').value.toLowerCase();
   document.querySelectorAll('.sec').forEach(sec=>{
-    if(fc&&sec.dataset.cat!==fc){sec.style.display='none';return;}
+    if(fc&&sec.dataset.cat!==fc){ sec.style.display='none'; return; }
     sec.style.display='';
     sec.querySelectorAll('tbody tr').forEach(tr=>{
       let show=true;
-      if(fs&&tr.dataset.status!==fs)show=false;
-      if(fb&&tr.dataset.bldg!==fb)show=false;
-      if(fq&&!tr.dataset.item.toLowerCase().includes(fq))show=false;
+      if(fs&&tr.dataset.status!==fs) show=false;
+      if(fb&&tr.dataset.bldg!==fb) show=false;
+      if(fq&&!tr.dataset.item.toLowerCase().includes(fq)) show=false;
       tr.style.display=show?'':'none';
     });
   });
@@ -848,6 +923,9 @@ function resetFilter(){
   applyFilter();
 }
 
+// ══════════════════════════════════════════════════
+// CSV 匯出
+// ══════════════════════════════════════════════════
 function exportCSV(){
   const rows=[['類別','工項','棟別','狀態',
     '預定開始','實際開始','預計完成','實際完成','完成率%',
