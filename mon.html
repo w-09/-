@@ -1,99 +1,892 @@
-// ============================================================
-// 前鎮亞灣智慧公宅 工程追蹤表 - Google Apps Script 後端 v3
-// 新增：預定開始日、實際開始日（工項紀錄共 18 欄）
-// ============================================================
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前鎮亞灣智慧公宅 工程會議追蹤表</title>
+<style>
+  :root{--blue:#1e3a5f;--border:#d1d5db;--bg:#f5f5f5;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);font-size:13px;color:#1e293b;}
 
-const SS_ID       = '14Q7KukHLRtDLrYKY0TTIwdopLtQtg7M6sQdRlC_3skU';
-const SH_MEETINGS = '會議資料';
-const SH_RECORDS  = '工項紀錄';
-const SH_ITEMS    = '工項主檔';
+  .topbar{background:#1e3a5f;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  .topbar-left{display:flex;flex-direction:column;gap:2px;}
+  .topbar-title{font-size:15px;font-weight:700;letter-spacing:.3px;}
+  .topbar-sub{font-size:11px;opacity:.65;display:flex;align-items:center;gap:5px;}
+  .topbar-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .meta-field{display:flex;align-items:center;gap:4px;font-size:12px;}
+  .meta-field label{opacity:.6;white-space:nowrap;}
+  .meta-field input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:3px;padding:3px 7px;font-size:12px;font-family:inherit;width:110px;}
+  .meta-field input::placeholder{color:rgba(255,255,255,.35);}
+  .meta-field input:focus{outline:none;background:rgba(255,255,255,.2);}
+  .topbar-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:3px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .btn:hover{opacity:.82;}
+  .btn-save{background:#2563eb;color:#fff;}
+  .btn-new{background:#059669;color:#fff;}
+  .btn-init{background:#7c3aed;color:#fff;}
+  .btn-export{background:#475569;color:#fff;}
+  .btn-print{background:#374151;color:#fff;}
+  .btn-reload{background:#0891b2;color:#fff;}
 
-function res(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+  .datebar{background:#fff;border-bottom:2px solid #e2e8f0;padding:9px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .datebar label{font-size:11px;color:#64748b;font-weight:700;white-space:nowrap;}
+  .datebar input[type=date]{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;font-family:inherit;outline:none;}
+  .datebar input[type=date]:focus{border-color:#2563eb;}
+  .datebar select{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;min-width:190px;}
+  .dbar-sep{color:#cbd5e1;padding:0 4px;}
+  .btn-load{background:#1d4ed8;color:#fff;border:none;border-radius:3px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+  .btn-load:hover{background:#1e40af;}
+  .date-badge{font-size:11px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:2px 8px;font-weight:600;}
+
+  .statstrip{display:flex;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .stat{display:flex;align-items:center;gap:6px;padding:8px 16px;border-right:1px solid var(--border);white-space:nowrap;font-size:12px;}
+  .stat-num{font-weight:700;font-size:16px;line-height:1;}
+
+  .toolbar{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .toolbar label{font-size:11px;color:#64748b;font-weight:600;}
+  .toolbar select,.toolbar input[type=text]{border:1px solid var(--border);border-radius:3px;padding:4px 7px;font-size:12px;color:#334155;background:#fff;font-family:inherit;outline:none;}
+  .filter-group{display:flex;align-items:center;gap:4px;}
+  .btn-clear{background:#f1f5f9;color:#475569;border:1px solid var(--border);border-radius:3px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .btn-clear:hover{background:#e2e8f0;}
+
+  .wrap{padding:10px 20px 30px;max-width:1900px;margin:0 auto;}
+
+  .sec{background:#fff;border:1px solid var(--border);margin-bottom:8px;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;user-select:none;}
+  .sec-head-left{display:flex;align-items:center;gap:8px;}
+  .sec-head h2{font-size:13px;font-weight:700;color:#fff;}
+  .sec-count{font-size:11px;color:rgba(255,255,255,.65);background:rgba(0,0,0,.18);border-radius:2px;padding:1px 7px;}
+  .sec-pct{font-size:11px;color:rgba(255,255,255,.9);font-weight:700;}
+  .toggle{font-size:11px;color:rgba(255,255,255,.7);transition:transform .2s;}
+  .sec-head.collapsed .toggle{transform:rotate(-90deg);}
+
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{background:#f8fafc;color:#374151;font-weight:700;padding:6px 8px;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;}
+  thead th.left{text-align:left;}
+  thead .th-grp{background:#f1f5f9;font-size:10px;color:#6b7280;font-weight:600;letter-spacing:.3px;}
+  thead .th-grp th{background:#f1f5f9;}
+  tbody td{padding:5px 7px;border:1px solid #e5e7eb;vertical-align:middle;}
+  tbody tr:hover{background:#f9fafb;}
+  tbody tr.row-delay{background:#fef2f2;}
+  tbody tr.row-delay:hover{background:#fee2e2;}
+  tbody tr.row-done td{color:#6b7280;}
+
+  /* 時程欄群組底色 */
+  .th-sch{background:#e0f2fe !important;color:#0369a1 !important;}
+  td.td-sch{background:#f0f9ff;}
+  tbody tr.row-delay td.td-sch{background:#fde8e8;}
+  tbody tr.row-done td.td-sch{background:#f0f9ff;}
+
+  .c-no{width:26px;text-align:center;color:#9ca3af;font-size:11px;}
+  .c-item{min-width:120px;}
+  .c-bldg{width:44px;text-align:center;}
+  .c-status{width:68px;text-align:center;}
+  .c-date{width:80px;text-align:center;font-size:11px;}
+  .c-pct{width:108px;}
+  .c-mp{width:54px;text-align:center;}
+  .c-diff{width:68px;text-align:center;}
+  .c-text{min-width:110px;}
+  .c-note{min-width:100px;}
+
+  .badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .badge:hover{opacity:.75;}
+  .b-done{background:#d1fae5;color:#065f46;}
+  .b-ing{background:#dbeafe;color:#1e40af;}
+  .b-wait{background:#fef3c7;color:#92400e;}
+  .b-delay{background:#fee2e2;color:#991b1b;}
+  .b-apply{background:#ede9fe;color:#5b21b6;}
+
+  .pct-wrap{display:flex;align-items:center;gap:5px;}
+  .pct-bar{flex:1;height:6px;background:#e5e7eb;border-radius:2px;overflow:hidden;min-width:36px;}
+  .pct-fill{height:100%;border-radius:2px;transition:width .3s;}
+  input.pct-input{width:40px;border:1px solid #d1d5db;border-radius:2px;padding:2px 3px;font-size:11px;text-align:center;font-family:inherit;}
+  input.pct-input:focus{outline:none;border-color:#2563eb;}
+
+  .ed{border:1px solid transparent;border-radius:2px;padding:2px 4px;min-height:20px;cursor:text;line-height:1.45;word-break:break-all;}
+  .ed:hover{border-color:#d1d5db;background:#f9fafb;}
+  .ed:focus{outline:none;border-color:#2563eb;background:#fff;}
+
+  input.mp-in{width:46px;border:1px solid #d1d5db;border-radius:2px;padding:2px 3px;font-size:12px;text-align:center;font-family:inherit;}
+  input.mp-in:focus{outline:none;border-color:#2563eb;}
+
+  input.date-in{width:76px;border:1px solid #d1d5db;border-radius:2px;padding:2px 4px;font-size:11px;text-align:center;font-family:inherit;font-weight:600;color:#1e293b;background:#fff;}
+  input.date-in:focus{outline:none;border-color:#2563eb;background:#eff6ff;}
+  input.date-in.modified{background:#fefce8;border-color:#d97706;color:#92400e;}
+  input.date-in.has-val{background:#f0fdf4;border-color:#86efac;color:#166534;}
+
+  .btag{display:inline-block;background:#e0f2fe;color:#075985;border-radius:2px;padding:1px 5px;font-size:11px;font-weight:600;}
+  .item-name{font-weight:600;color:#111827;}
+  .item-sub{font-size:10px;color:#9ca3af;margin-top:1px;}
+  .issue-red{color:#dc2626;}
+  .abnormal-orange{color:#b45309;}
+
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9ca3af;vertical-align:middle;}
+  .sync-dot.syncing{background:#f59e0b;animation:blink .7s infinite;}
+  .sync-dot.ok{background:#10b981;}
+  .sync-dot.fail{background:#ef4444;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+  .range-bar{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:6px 20px;display:none;gap:8px;align-items:center;flex-wrap:wrap;}
+  .range-bar.show{display:flex;}
+  .range-bar label{font-size:11px;color:#64748b;font-weight:700;}
+  .rdate-btn{background:#fff;border:1px solid #cbd5e1;border-radius:3px;padding:3px 11px;font-size:11px;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;}
+  .rdate-btn:hover{border-color:#2563eb;color:#2563eb;}
+  .rdate-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+
+  #overlay{position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:8000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+  #overlay.on{display:flex;}
+  .spin{width:42px;height:42px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay-msg{color:#fff;font-size:13px;font-weight:600;}
+
+  #toast{position:fixed;bottom:22px;right:22px;padding:9px 18px;border-radius:4px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:opacity .3s;opacity:0;pointer-events:none;background:#1e3a5f;color:#fff;}
+  #toast.err{background:#dc2626;}
+  #toast.ok{background:#059669;}
+
+  @media print{
+    .datebar,.range-bar,.toolbar,.statstrip,.topbar-btns{display:none!important;}
+    .topbar{position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-head,.badge,.pct-fill,tbody tr.row-delay,.th-sch,td.td-sch{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-body{display:block!important;}
+    body{background:#fff;font-size:10px;}
+    .wrap{padding:4px 6px;}
+    table{font-size:9px;}
+    thead th,tbody td{padding:2px 4px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ TopBar ══ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">前鎮亞灣智慧公宅（第一期）新建統包工程</div>
+    <div class="topbar-sub">
+      工程進度會議追蹤表
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncTxt" style="font-size:10px;"></span>
+    </div>
+  </div>
+  <div class="topbar-meta">
+    <div class="meta-field"><label>會議日期</label>
+      <input type="date" id="mtgDate" value="2026-09-04">
+    </div>
+    <div class="meta-field"><label>第</label>
+      <input type="text" id="mtgWeek" placeholder="次" style="width:44px">
+      <label>次會議</label>
+    </div>
+    <div class="meta-field"><label>主持人</label>
+      <input type="text" id="mtgHost" placeholder="姓名" style="width:70px">
+    </div>
+    <div class="meta-field"><label>記錄</label>
+      <input type="text" id="mtgRec" placeholder="姓名" style="width:70px">
+    </div>
+  </div>
+  <div class="topbar-btns">
+    <button class="btn btn-init"   onclick="doInit()">🗄 初始化試算表</button>
+    <button class="btn btn-reload" onclick="doReloadItems()">🔄 重新載入工項</button>
+    <button class="btn btn-new"    onclick="doNew()">＋ 新會議</button>
+    <button class="btn btn-save"   onclick="doSave()">☁ 儲存雲端</button>
+    <button class="btn btn-export" onclick="exportCSV()">↓ CSV</button>
+    <button class="btn btn-print"  onclick="window.print()">🖨 列印</button>
+  </div>
+</div>
+
+<!-- ══ Date Bar ══ -->
+<div class="datebar">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <label>📋 歷史會議：</label>
+    <select id="mtgPicker" onchange="onPick()">
+      <option value="">— 選擇歷史會議 —</option>
+    </select>
+  </div>
+  <span class="dbar-sep">｜</span>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <label>📅 日期篩選：</label>
+    <input type="date" id="dateFrom" value="2026-09-01">
+    <span class="dbar-sep">～</span>
+    <input type="date" id="dateTo" value="2026-12-31">
+    <button class="btn-load" onclick="doRange()">🔍 查詢</button>
+  </div>
+  <span id="dateBadge" class="date-badge" style="display:none"></span>
+</div>
+
+<!-- ══ Range Bar ══ -->
+<div class="range-bar" id="rangeBar">
+  <label>查詢結果：</label>
+  <div id="rangeBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+</div>
+
+<!-- ══ Stat Strip ══ -->
+<div class="statstrip" id="statstrip"></div>
+
+<!-- ══ Filter Toolbar ══ -->
+<div class="toolbar">
+  <div class="filter-group"><label>類別：</label>
+    <select id="f-cat" onchange="applyFilter()"><option value="">全部</option></select>
+  </div>
+  <div class="filter-group"><label>狀態：</label>
+    <select id="f-status" onchange="applyFilter()">
+      <option value="">全部</option>
+      <option>已完成</option><option>進行中</option><option>待施工</option><option>延遲</option><option>待申請</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>棟別：</label>
+    <select id="f-bldg" onchange="applyFilter()">
+      <option value="">全部</option>
+      <option>東</option><option>西</option><option>南</option><option>北</option><option>全棟</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>搜尋：</label>
+    <input type="text" id="f-search" placeholder="工項名稱" style="width:130px" oninput="applyFilter()">
+  </div>
+  <button class="btn-clear" onclick="resetFilter()">清除</button>
+</div>
+
+<!-- ══ Main ══ -->
+<div class="wrap" id="mainWrap">
+  <div style="text-align:center;padding:60px;color:#94a3b8;font-size:14px;">
+    ⏳ 正在從 Google Sheets 載入工項資料...
+  </div>
+</div>
+
+<div id="overlay"><div class="spin"></div><div class="overlay-msg" id="overlayMsg">載入中...</div></div>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/AKfycbwjwsbt9stBqeCtOL8kxGq_PWjY-4ncZl8UbxuqgoxVCEG_BJfWKqMrado2u-r5G_yS/exec';
+
+const CAT_COLORS = [
+  '#1e3a8a','#4c1d95','#1e4e79','#14532d',
+  '#451a03','#422006','#7f1d1d','#0f4c75','#1a1a2e','#2d6a4f'
+];
+
+let CATS  = [];
+let STATE = {};
+let META  = {};
+
+const SK  = (ci,ii) => `${ci}_${ii}`;
+const SL  = ['已完成','進行中','待施工','延遲','待申請'];
+const SC  = {'已完成':'b-done','進行中':'b-ing','待施工':'b-wait','延遲':'b-delay','待申請':'b-apply'};
+const pc  = p => p===100?'#15803d':p>=70?'#1d4ed8':p>=40?'#d97706':'#dc2626';
+
+function gv(ci,ii,k){
+  const s=STATE[SK(ci,ii)]; if(s&&s[k]!==undefined)return s[k];
+  const m=META[SK(ci,ii)];  if(m&&m[k]!==undefined)return m[k];
+  const def={
+    pct:0,actualMP:0,tomorrowMP:0,
+    diff:'',todayWork:'',tomorrowWork:'',
+    issue:'',abnormal:'',note:'',
+    planStart:'',actualStart:'',
+    planEnd:'',actualEnd:'',
+    status:'進行中'
+  };
+  return def[k]??'';
+}
+function sv(ci,ii,k,v){
+  if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};
+  STATE[SK(ci,ii)][k]=v;
 }
 
-function doGet(e) {
-  const p = e.parameter || {};
-  try {
-    switch (p.action) {
-      case 'initSheets':  return res(initSheets());
-      case 'getItems':    return res(getItems());
-      case 'getMeetings': return res(getMeetings());
-      case 'getRecords':  return res(getRecords(p));
-      default:            return res({ error: 'unknown action: ' + p.action });
+// ── UI Helpers ──
+function loading(msg='處理中...'){
+  document.getElementById('overlayMsg').textContent=msg;
+  document.getElementById('overlay').classList.add('on');
+}
+function unload(){document.getElementById('overlay').classList.remove('on');}
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=type;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2800);
+}
+function sync(st,txt=''){
+  document.getElementById('syncDot').className='sync-dot '+st;
+  document.getElementById('syncTxt').textContent=txt;
+}
+function badge(txt){
+  const el=document.getElementById('dateBadge');
+  if(txt){el.textContent=txt;el.style.display='';}
+  else el.style.display='none';
+}
+
+// ── Fetch ──
+async function GET(p){const r=await fetch(API+'?'+new URLSearchParams(p));return r.json();}
+async function POST(b){const r=await fetch(API,{method:'POST',body:JSON.stringify(b)});return r.json();}
+
+// ══════════════════════════════════════════════════
+// 動態載入工項主檔
+// ══════════════════════════════════════════════════
+async function loadMeta(){
+  try{
+    const r=await GET({action:'getItems'});
+    if(!r.ok||!r.items||!r.items.length)return false;
+    const catMap=new Map();
+    r.items.forEach(it=>{
+      const ci=Number(it.catIndex);
+      if(!catMap.has(ci))catMap.set(ci,{name:it.catName,color:CAT_COLORS[ci%CAT_COLORS.length],items:[]});
+      catMap.get(ci).items[Number(it.itemIndex)]={item:it.item,bldg:it.bldg};
+    });
+    CATS=[];
+    const maxCi=Math.max(...catMap.keys());
+    for(let ci=0;ci<=maxCi;ci++){
+      if(catMap.has(ci)){
+        const cat=catMap.get(ci);
+        cat.items=cat.items.filter(Boolean);
+        CATS.push(cat);
+      }
     }
-  } catch(err) {
-    return res({ error: err.message, stack: err.stack });
-  }
+    META={};
+    r.items.forEach(it=>{
+      const ci=Number(it.catIndex),ii=Number(it.itemIndex);
+      META[SK(ci,ii)]={planEnd:String(it.planEnd||''),status:it.defaultStatus||'進行中',note:it.note||''};
+    });
+    _refreshCatFilter();
+    return true;
+  }catch(e){console.error(e);return false;}
 }
 
-function doPost(e) {
-  let body = {};
-  try { body = JSON.parse(e.postData.contents); } catch(err) {}
-  try {
-    switch (body.action) {
-      case 'saveMeeting':   return res(saveMeeting(body));
-      case 'saveBatch':     return res(saveBatch(body));
-      case 'deleteRecords': return res(deleteRecords(body));
-      default:              return res({ error: 'unknown action: ' + body.action });
+function _refreshCatFilter(){
+  const sel=document.getElementById('f-cat');
+  sel.innerHTML='<option value="">全部</option>';
+  CATS.forEach(cat=>{
+    const o=document.createElement('option');
+    o.value=cat.name;o.textContent=cat.name;
+    sel.appendChild(o);
+  });
+}
+
+async function doReloadItems(){
+  sync('syncing','載入工項...');
+  loading('從 Google Sheets 重新載入工項主檔...');
+  try{
+    const ok=await loadMeta();
+    unload();
+    if(ok){
+      renderAll();
+      const total=CATS.reduce((s,c)=>s+c.items.length,0);
+      sync('ok',`已載入 ${total} 項`);
+      toast(`✓ 工項已更新（共 ${total} 項）`,'ok');
+    }else{
+      sync('fail','載入失敗');
+      toast('工項載入失敗，請確認已執行「初始化試算表」','err');
     }
-  } catch(err) {
-    return res({ error: err.message });
-  }
+  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
 }
 
-// ════════════════════════════════════════════════════════
-// 初始化工作表
-// ════════════════════════════════════════════════════════
-function initSheets() {
-  const ss = SpreadsheetApp.openById(SS_ID);
-
-  // ── 會議資料（不變）──
-  let sh = ss.getSheetByName(SH_MEETINGS);
-  if (!sh) {
-    sh = ss.insertSheet(SH_MEETINGS);
-    const hdr = ['會議日期','第幾次會議','主持人','紀錄人員','建立時間'];
-    sh.appendRow(hdr);
-    _styleHeader(sh, hdr.length);
-    sh.setColumnWidth(1, 110);
-    sh.setColumnWidth(5, 160);
-  }
-
-  // ── 工項紀錄（★ 新增「預定開始日」「實際開始日」，共 18 欄）──
-  sh = ss.getSheetByName(SH_RECORDS);
-  if (!sh) {
-    sh = ss.insertSheet(SH_RECORDS);
-    const hdr = [
-      '會議日期','類別序號','工項序號',
-      '狀態',
-      '預定開始日','實際開始日',          // ★ 新增（欄5、6）
-      '預計完成日','實際完成日',           // 原欄5、6 → 移至欄7、8
-      '完成率(%)',
-      '本日出工數','明日預計出工數','與原預計差異',
-      '本日施工內容','明天預定工作','延遲原因/對策','異常原因說明','備註說明',
-      '更新時間'                           // 共 18 欄
-    ];
-    sh.appendRow(hdr);
-    _styleHeader(sh, hdr.length);
-    [1,5,6,7,8,18].forEach(c => sh.setColumnWidth(c, 110));
-    [13,14,15,16,17].forEach(c => sh.setColumnWidth(c, 150));
-  }
-
-  // ── 工項主檔（不變）──
-  sh = ss.getSheetByName(SH_ITEMS);
-  if (!sh) {
-    sh = ss.insertSheet(SH_ITEMS);
-    const hdr = ['類別序號','類別名稱','工項序號','工項名稱','棟別','預計完成日','預設狀態','備註'];
-    sh.appendRow(hdr);
-    _styleHeader(sh, hdr.length);
-    sh.setColumnWidth(4, 150);
-    sh.setColumnWidth(8, 200);
-    _seedItems(sh);
-  }
-
-  return { ok: true, msg: '初始化完成，已建立「會議資料」「工項紀錄」「工項主檔」三個工作表' };
+// ══════════════════════════════════════════════════
+// 初始化試算表
+// ══════════════════════════════════════════════════
+async function doInit(){
+  loading('初始化 Google Sheets...');
+  try{
+    const r=await GET({action:'initSheets'});
+    unload();
+    if(r.ok){
+      toast('✓ '+r.msg,'ok');
+      await Promise.all([loadMeta(),refreshPicker()]);
+      renderAll();
+    }else toast('錯誤：'+(r.error||r.msg),'err');
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
-function _styleHeader(sh
+// ══════════════════════════════════════════════════
+// 歷史會議下拉
+// ══════════════════════════════════════════════════
+async function refreshPicker(){
+  try{
+    const r=await GET({action:'getMeetings'});
+    if(!r.ok)return;
+    const sel=document.getElementById('mtgPicker');
+    sel.innerHTML='<option value="">— 選擇歷史會議 —</option>';
+    (r.meetings||[]).forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.mtgDate;
+      o.textContent=`${m.mtgDate}（第 ${m.mtgWeek||'?'} 次　${m.mtgHost||''}）`;
+      sel.appendChild(o);
+    });
+  }catch(e){}
+}
+
+async function onPick(){
+  const d=document.getElementById('mtgPicker').value;
+  if(!d)return;
+  document.getElementById('mtgDate').value=d;
+  await loadDate(d);
+}
+
+// ══════════════════════════════════════════════════
+// 日期範圍查詢
+// ══════════════════════════════════════════════════
+async function doRange(){
+  const from=document.getElementById('dateFrom').value;
+  const to=document.getElementById('dateTo').value;
+  if(!from||!to){toast('請選擇日期範圍','err');return;}
+  loading(`查詢 ${from} ～ ${to}...`);
+  try{
+    const r=await GET({action:'getRecords',dateFrom:from,dateTo:to});
+    unload();
+    if(!r.ok){toast('查詢失敗：'+(r.error||''),'err');return;}
+    const dates=[...new Set((r.records||[]).map(x=>x.mtgDate))].filter(Boolean).sort();
+    const bar=document.getElementById('rangeBar');
+    const btns=document.getElementById('rangeBtns');
+    if(!dates.length){bar.classList.remove('show');badge('此區間無資料');toast('此日期範圍無資料','err');return;}
+    bar.classList.add('show');
+    btns.innerHTML='';
+    dates.forEach(d=>{
+      const btn=document.createElement('button');
+      btn.className='rdate-btn';btn.textContent=d;
+      btn.onclick=async()=>{
+        document.querySelectorAll('.rdate-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('mtgDate').value=d;
+        applyRecords((r.records||[]).filter(x=>x.mtgDate===d));
+        badge(`已載入：${d}`);
+        const mr=await GET({action:'getMeetings'});
+        if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===d);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
+      };
+      btns.appendChild(btn);
+    });
+    btns.lastChild.classList.add('active');
+    const latest=dates[dates.length-1];
+    document.getElementById('mtgDate').value=latest;
+    applyRecords((r.records||[]).filter(x=>x.mtgDate===latest));
+    badge(`共 ${dates.length} 筆，已載入最新：${latest}`);
+    toast(`找到 ${dates.length} 筆會議，已載入最新一筆`,'ok');
+    const mr=await GET({action:'getMeetings'});
+    if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===latest);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+}
+
+// ══════════════════════════════════════════════════
+// 載入指定日期
+// ══════════════════════════════════════════════════
+async function loadDate(date){
+  loading(`載入 ${date} 資料...`);
+  try{
+    const [recR,mtgR]=await Promise.all([GET({action:'getRecords',date}),GET({action:'getMeetings'})]);
+    unload();
+    if(!recR.ok){toast('載入失敗：'+(recR.error||''),'err');return;}
+    applyRecords(recR.records||[]);
+    if(mtgR.ok){const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
+    badge(`已載入：${date}（${(recR.records||[]).length} 筆）`);
+    toast(`${date} 資料已載入`,'ok');
+  }catch(e){unload();toast('連線失敗：'+e.message,'err');}
+}
+
+function applyRecords(records){
+  STATE={};
+  (records||[]).forEach(r=>{
+    STATE[SK(r.catIndex,r.itemIndex)]={
+      status:       r.status||'進行中',
+      planStart:    String(r.planStart||''),
+      actualStart:  String(r.actualStart||''),
+      planEnd:      String(r.planEnd||''),
+      actualEnd:    String(r.actualEnd||''),
+      pct:          +r.pct||0,
+      actualMP:     +r.actualMP||0,
+      tomorrowMP:   +r.tomorrowMP||0,
+      diff:         r.diff||'',
+      todayWork:    r.todayWork||'',
+      tomorrowWork: r.tomorrowWork||'',
+      issue:        r.issue||'',
+      abnormal:     r.abnormal||'',
+      note:         r.note||'',
+    };
+  });
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// 新會議
+// ══════════════════════════════════════════════════
+function doNew(){
+  if(!confirm('開新會議將清空目前畫面（未儲存資料將遺失），確定？'))return;
+  STATE={};
+  document.getElementById('mtgDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mtgWeek').value='';
+  document.getElementById('mtgHost').value='';
+  document.getElementById('mtgRec').value='';
+  document.getElementById('rangeBar').classList.remove('show');
+  badge('');
+  renderAll();
+  toast('已開新會議，請填寫後儲存','ok');
+}
+
+// ══════════════════════════════════════════════════
+// 儲存至 Google Sheets
+// ══════════════════════════════════════════════════
+async function doSave(){
+  const mtgDate=document.getElementById('mtgDate').value;
+  if(!mtgDate){toast('請選擇會議日期','err');return;}
+  sync('syncing','儲存中...');
+  loading('儲存至 Google Sheets...');
+  try{
+    await POST({action:'saveMeeting',mtgDate,
+      mtgWeek:document.getElementById('mtgWeek').value,
+      mtgHost:document.getElementById('mtgHost').value,
+      mtgRec: document.getElementById('mtgRec').value,
+    });
+    const records=[];
+    CATS.forEach((cat,ci)=>{
+      cat.items.forEach((_,ii)=>{
+        records.push({
+          catIndex:    ci,   itemIndex:   ii,
+          status:      gv(ci,ii,'status'),
+          planStart:   gv(ci,ii,'planStart'),
+          actualStart: gv(ci,ii,'actualStart'),
+          planEnd:     gv(ci,ii,'planEnd'),
+          actualEnd:   gv(ci,ii,'actualEnd'),
+          pct:         gv(ci,ii,'pct'),
+          actualMP:    gv(ci,ii,'actualMP'),
+          tomorrowMP:  gv(ci,ii,'tomorrowMP'),
+          diff:        gv(ci,ii,'diff'),
+          todayWork:   gv(ci,ii,'todayWork'),
+          tomorrowWork:gv(ci,ii,'tomorrowWork'),
+          issue:       gv(ci,ii,'issue'),
+          abnormal:    gv(ci,ii,'abnormal'),
+          note:        gv(ci,ii,'note'),
+        });
+      });
+    });
+    const r=await POST({action:'saveBatch',mtgDate,records});
+    unload();
+    if(r.ok){
+      sync('ok',`已儲存 ${r.total} 筆`);
+      toast(`✓ 儲存成功（更新 ${r.updated} / 新增 ${r.inserted}）`,'ok');
+      await refreshPicker();
+    }else{sync('fail','儲存失敗');toast('儲存失敗：'+(r.error||''),'err');}
+  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
+}
+
+// ══════════════════════════════════════════════════
+// 渲染
+// ══════════════════════════════════════════════════
+function renderAll(){
+  if(!CATS.length){
+    document.getElementById('mainWrap').innerHTML=`
+      <div style="text-align:center;padding:60px;color:#94a3b8;font-size:14px;">
+        ⚠️ 尚未載入工項，請按「🔄 重新載入工項」或「🗄 初始化試算表」
+      </div>`;
+    updateStats();return;
+  }
+  const wrap=document.getElementById('mainWrap');
+  wrap.innerHTML='';
+  CATS.forEach((cat,ci)=>{
+    const sec=document.createElement('div');
+    sec.className='sec';sec.dataset.cat=cat.name;
+    sec.innerHTML=`
+      <div class="sec-head" style="background:${cat.color}" onclick="toggleSec(this)">
+        <div class="sec-head-left">
+          <h2>${cat.name}</h2>
+          <span class="sec-count">${cat.items.length} 項</span>
+          <span class="sec-pct" id="sp_${ci}"></span>
+        </div>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr class="th-grp">
+                <th colspan="3">基本資訊</th>
+                <th class="th-sch" colspan="5">時　程</th>
+                <th colspan="2">進度</th>
+                <th colspan="3" style="border-left:2px solid #d1d5db">人力管制</th>
+                <th colspan="4" style="border-left:2px solid #d1d5db">會議紀錄</th>
+                <th>備註</th>
+              </tr>
+              <tr>
+                <th class="c-no">#</th>
+                <th class="left c-item">工項名稱</th>
+                <th class="c-bldg">棟別</th>
+                <th class="c-status">狀態</th>
+                <th class="th-sch c-date">預定開始</th>
+                <th class="th-sch c-date">實際開始</th>
+                <th class="th-sch c-date">預計完成</th>
+                <th class="th-sch c-date">實際完成</th>
+                <th class="c-pct">完成率</th>
+                <th style="width:48px;text-align:center;">落後</th>
+                <th class="c-mp" style="border-left:2px solid #d1d5db">本日<br>出工</th>
+                <th class="c-mp">明日<br>出工</th>
+                <th class="c-diff">與預計<br>差異</th>
+                <th class="c-text" style="border-left:2px solid #d1d5db">本日施工內容</th>
+                <th class="c-text">明天預定工作</th>
+                <th class="c-text">延遲原因／對策</th>
+                <th class="c-text">異常原因說明</th>
+                <th class="c-note">備註說明</th>
+              </tr>
+            </thead>
+            <tbody id="tb_${ci}"></tbody>
+          </table>
+        </div>
+      </div>`;
+    wrap.appendChild(sec);
+    renderTbody(ci);
+  });
+  updateStats();
+}
+
+function renderTbody(ci){
+  const tbody=document.getElementById(`tb_${ci}`);
+  if(!tbody)return;
+  tbody.innerHTML='';
+  CATS[ci].items.forEach((row,ii)=>{
+    const pct         =+gv(ci,ii,'pct')||0;
+    const status      =gv(ci,ii,'status')||'進行中';
+    const planStart   =gv(ci,ii,'planStart')||'';
+    const actualStart =gv(ci,ii,'actualStart')||'';
+    const planEnd     =gv(ci,ii,'planEnd')||'';
+    const actualEnd   =gv(ci,ii,'actualEnd')||'';
+    const actualMP    =+gv(ci,ii,'actualMP')||0;
+    const tomorrowMP  =+gv(ci,ii,'tomorrowMP')||0;
+    const diff        =gv(ci,ii,'diff')||'';
+    const todayWork   =gv(ci,ii,'todayWork')||'';
+    const tomorrowWork=gv(ci,ii,'tomorrowWork')||'';
+    const iss         =gv(ci,ii,'issue')||'';
+    const abnormal    =gv(ci,ii,'abnormal')||'';
+    const note        =gv(ci,ii,'note')||'';
+    const metaPE      =(META[SK(ci,ii)]||{}).planEnd||'';
+    const isModified  =planEnd&&planEnd!==metaPE;
+    const isDelay     =status==='延遲';
+    const isDone      =status==='已完成';
+
+    const tr=document.createElement('tr');
+    if(isDelay)tr.className='row-delay';
+    else if(isDone)tr.className='row-done';
+    tr.dataset.cat=CATS[ci].name;
+    tr.dataset.bldg=row.bldg;
+    tr.dataset.status=status;
+    tr.dataset.item=row.item;
+
+    tr.innerHTML=`
+      <td class="c-no">${ii+1}</td>
+      <td class="c-item">
+        <div class="item-name">${row.item}</div>
+        ${note?`<div class="item-sub">${note}</div>`:''}
+      </td>
+      <td class="c-bldg"><span class="btag">${row.bldg}</span></td>
+      <td class="c-status">
+        <span class="badge ${SC[status]||'b-ing'}" onclick="cycleStatus(${ci},${ii},this)">${status}</span>
+      </td>
+      <td class="c-date td-sch">
+        <input class="date-in" type="text" value="${planStart}" placeholder="MM/DD"
+          title="預定開始日期"
+          onblur="sv(${ci},${ii},'planStart',this.value.trim())"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td class="c-date td-sch">
+        <input class="date-in${actualStart?' has-val':''}" type="text" value="${actualStart}" placeholder="MM/DD"
+          title="實際開始日期"
+          onblur="updateActualStart(${ci},${ii},this.value,this)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td class="c-date td-sch">
+        <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}" placeholder="MM/DD"
+          title="預計完成日期"
+          onblur="updatePlanEnd(${ci},${ii},this.value,this)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td class="c-date td-sch">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'actualEnd',this.innerText.trim());updateStats();"
+        >${actualEnd}</div>
+      </td>
+      <td class="c-pct">
+        <div class="pct-wrap">
+          <div class="pct-bar">
+            <div class="pct-fill" id="pf_${ci}_${ii}" style="width:${pct}%;background:${pc(pct)}"></div>
+          </div>
+          <input class="pct-input" type="number" min="0" max="100" value="${pct}"
+            oninput="updPct(${ci},${ii},this.value)">
+        </div>
+      </td>
+      <td style="text-align:center;">
+        ${isDelay
+          ?'<span style="color:#dc2626;font-weight:700;font-size:11px">延遲</span>'
+          :'<span style="color:#9ca3af;font-size:11px">—</span>'}
+      </td>
+      <td style="border-left:2px solid #e5e7eb;text-align:center;">
+        <input class="mp-in" type="number" min="0" value="${actualMP}"
+          onchange="sv(${ci},${ii},'actualMP',+this.value);updateStats();">
+      </td>
+      <td style="text-align:center;">
+        <input class="mp-in" type="number" min="0" value="${tomorrowMP}"
+          onchange="sv(${ci},${ii},'tomorrowMP',+this.value);updateStats();">
+      </td>
+      <td class="c-diff">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'diff',this.innerText.trim());">${diff}</div>
+      </td>
+      <td style="border-left:2px solid #e5e7eb;">
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'todayWork',this.innerText.trim());">${todayWork}</div>
+      </td>
+      <td>
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'tomorrowWork',this.innerText.trim());">${tomorrowWork}</div>
+      </td>
+      <td>
+        <div class="ed issue-red" contenteditable="true"
+          onblur="sv(${ci},${ii},'issue',this.innerText.trim());">${iss}</div>
+      </td>
+      <td>
+        <div class="ed abnormal-orange" contenteditable="true"
+          onblur="sv(${ci},${ii},'abnormal',this.innerText.trim());">${abnormal}</div>
+      </td>
+      <td>
+        <div class="ed" contenteditable="true"
+          onblur="sv(${ci},${ii},'note',this.innerText.trim());">${note}</div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  updSecPct(ci);
+}
+
+function updateActualStart(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'actualStart',v);
+  el.classList.toggle('has-val',!!v);
+}
+
+function updPct(ci,ii,val){
+  const v=Math.min(100,Math.max(0,+val||0));
+  sv(ci,ii,'pct',v);
+  const f=document.getElementById(`pf_${ci}_${ii}`);
+  if(f){f.style.width=v+'%';f.style.background=pc(v);}
+  updateStats();updSecPct(ci);
+}
+
+function updatePlanEnd(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'planEnd',v);
+  const metaPE=(META[SK(ci,ii)]||{}).planEnd||'';
+  el.classList.toggle('modified',!!(v&&v!==metaPE));
+}
+
+function cycleStatus(ci,ii,el){
+  const cur=gv(ci,ii,'status');
+  const next=SL[(SL.indexOf(cur)+1)%SL.length];
+  sv(ci,ii,'status',next);
+  el.className=`badge ${SC[next]||'b-ing'}`;
+  el.textContent=next;
+  const tr=el.closest('tr');
+  tr.className=next==='延遲'?'row-delay':next==='已完成'?'row-done':'';
+  tr.dataset.status=next;
+  updateStats();updSecPct(ci);
+}
+
+function updSecPct(ci){
+  const items=CATS[ci]?CATS[ci].items:[];
+  if(!items.length)return;
+  const avg=Math.round(items.reduce((s,_,ii)=>s+(+gv(ci,ii,'pct')||0),0)/items.length);
+  const el=document.getElementById(`sp_${ci}`);
+  if(el)el.textContent=avg+'%';
+}
+
+function toggleSec(head){
+  head.classList.toggle('collapsed');
+  const b=head.nextElementSibling;
+  b.style.display=b.style.display==='none'?'':'none';
+}
+
+function updateStats(){
+  let done=0,ing=0,wait=0,delay=0,apply=0,aMP=0,tMP=0;
+  CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
+    const s=gv(ci,ii,'status');
+    if(s==='已完成')done++;
+    else if(s==='進行中')ing++;
+    else if(s==='待施工')wait++;
+    else if(s==='延遲')delay++;
+    else if(s==='待申請')apply++;
+    aMP+=+gv(ci,ii,'actualMP')||0;
+    tMP+=+gv(ci,ii,'tomorrowMP')||0;
+  }));
+  const total=done+ing+wait+delay+apply||1;
+  document.getElementById('statstrip').innerHTML=`
+    <div class="stat"><span class="stat-num" style="color:#065f46">${done}</span>&nbsp;已完成</div>
+    <div class="stat"><span class="stat-num" style="color:#1e40af">${ing}</span>&nbsp;進行中</div>
+    <div class="stat"><span class="stat-num" style="color:#92400e">${wait}</span>&nbsp;待施工</div>
+    <div class="stat"><span class="stat-num" style="color:#991b1b">${delay}</span>&nbsp;延遲</div>
+    <div class="stat"><span class="stat-num" style="color:#5b21b6">${apply}</span>&nbsp;待申請</div>
+    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">
+      本日出工&nbsp;<span class="stat-num" style="color:#1e3a5f">${aMP}</span>&nbsp;人
+    </div>
+    <div class="stat">
+      明日預計&nbsp;<span class="stat-num" style="color:#15803d">${tMP}</span>&nbsp;人
+    </div>
+    <div class="stat" style="border-left:2px solid #d1d5db;padding-left:16px;">
+      整體完成率&nbsp;<span class="stat-num" style="color:#1e3a5f">${Math.round(done/total*100)}%</span>
+      &nbsp;<span style="font-size:11px;color:#9ca3af">(${done}/${total})</span>
+    </div>`;
+}
+
+function applyFilter(){
+  const fc=document.getElementById('f-cat').value;
+  const fs=document.getElementById('f-status').value;
+  const fb=document.getElementById('f-bldg').value;
+  const fq=document.getElementById('f-search').value.toLowerCase();
+  document.querySelectorAll('.sec').forEach(sec=>{
+    if(fc&&sec.dataset.cat!==fc){sec.style.display='none';return;}
+    sec.style.display='';
+    sec.querySelectorAll('tbody tr').forEach(tr=>{
+      let show=true;
+      if(fs&&tr.dataset.status!==fs)show=false;
+      if(fb&&tr.dataset.bldg!==fb)show=false;
+      if(fq&&!tr.dataset.item.toLowerCase().includes(fq))show=false;
+      tr.style.display=show?'':'none';
+    });
+  });
+}
+function resetFilter(){
+  ['f-cat','f-status','f-bldg'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-search').value='';
+  applyFilter();
+}
+
+function exportCSV(){
+  const rows=[['類別','工項','棟別','狀態',
+    '預定開始','實際開始','預計完成','實際完成','完成率%',
+    '本日出工','明日出工','差異','本日施工','明日工作','延遲原因','異常說明','備註']];
+  CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
+    rows.push([
+      cat.name, CATS[ci].items[ii].item, CATS[ci].items[ii].bldg,
+      gv(ci,ii,'status'),
+      gv(ci,ii,'planStart'),  gv(ci,ii,'actualStart'),
+      gv(ci,ii,'planEnd'),    gv(ci,ii,'actualEnd'),
+      gv(ci,ii,'pct'),
+      gv(ci,ii,'actualMP'),   gv(ci,ii,'tomorrowMP'), gv(ci,ii,'diff'),
+      gv(ci,ii,'todayWork'),  gv(ci,ii,'tomorrowWork'),
+      gv(ci,ii,'issue'),      gv(ci,ii,'abnormal'),   gv(ci,ii,'note')
+    ]);
+  }));
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`前鎮亞灣工項追蹤_${document.getElementById('mtgDate').value.replace(/-/g,'')}.csv`;
+  a.click();
+  toast('CSV 已匯出','ok');
+}
+
+// ══════════════════════════════════════════════════
+// 啟動
+// ══════════════════════════════════════════════════
+(async()=>{
+  sync('syncing','載入工項...');
+  const ok=await loadMeta();
+  if(ok){
+    const total=CATS.reduce((s,c)=>s+c.items.length,0);
+    sync('ok',`已載入 ${total} 項`);
+  }else{
+    sync('fail','工項載入失敗');
+  }
+  await refreshPicker();
+  renderAll();
+})();
+</script>
+</body>
+</html>
