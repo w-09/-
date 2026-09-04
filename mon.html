@@ -27,6 +27,7 @@
   .btn-init{background:#7c3aed;color:#fff;}
   .btn-export{background:#475569;color:#fff;}
   .btn-print{background:#374151;color:#fff;}
+  .btn-reload{background:#0891b2;color:#fff;}
 
   .datebar{background:#fff;border-bottom:2px solid #e2e8f0;padding:9px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
   .datebar label{font-size:11px;color:#64748b;font-weight:700;white-space:nowrap;}
@@ -83,6 +84,10 @@
   .c-text{min-width:115px;}
   .c-note{min-width:105px;}
 
+  /* ★ 時程群組底色 */
+  .th-schedule{background:#e0f2fe !important;color:#0369a1 !important;}
+  td.td-schedule{background:#f0f9ff;}
+
   .badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
   .badge:hover{opacity:.75;}
   .b-done{background:#d1fae5;color:#065f46;}
@@ -107,6 +112,8 @@
   input.date-in{width:78px;border:1px solid #d1d5db;border-radius:2px;padding:2px 4px;font-size:11px;text-align:center;font-family:inherit;font-weight:600;color:#1e293b;background:#fff;}
   input.date-in:focus{outline:none;border-color:#2563eb;background:#eff6ff;}
   input.date-in.modified{background:#fefce8;border-color:#d97706;color:#92400e;}
+  /* ★ 實際開始日期有值時顯示綠色 */
+  input.date-in.has-val{background:#f0fdf4;border-color:#86efac;color:#166534;}
 
   .btag{display:inline-block;background:#e0f2fe;color:#075985;border-radius:2px;padding:1px 5px;font-size:11px;font-weight:600;}
   .item-name{font-weight:600;color:#111827;}
@@ -120,7 +127,6 @@
   .sync-dot.fail{background:#ef4444;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-  /* 日期範圍結果按鈕列 */
   .range-bar{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:6px 20px;display:none;gap:8px;align-items:center;flex-wrap:wrap;}
   .range-bar.show{display:flex;}
   .range-bar label{font-size:11px;color:#64748b;font-weight:700;}
@@ -152,7 +158,6 @@
 </head>
 <body>
 
-<!-- TopBar -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-title">前鎮亞灣智慧公宅（第一期）新建統包工程</div>
@@ -178,15 +183,15 @@
     </div>
   </div>
   <div class="topbar-btns">
-    <button class="btn btn-init" onclick="doInit()">🗄 初始化試算表</button>
-    <button class="btn btn-new"  onclick="doNew()">＋ 新會議</button>
-    <button class="btn btn-save" onclick="doSave()">☁ 儲存雲端</button>
+    <button class="btn btn-init"   onclick="doInit()">🗄 初始化試算表</button>
+    <button class="btn btn-reload" onclick="doReloadItems()">🔄 重新載入工項</button>
+    <button class="btn btn-new"    onclick="doNew()">＋ 新會議</button>
+    <button class="btn btn-save"   onclick="doSave()">☁ 儲存雲端</button>
     <button class="btn btn-export" onclick="exportCSV()">↓ CSV</button>
-    <button class="btn btn-print" onclick="window.print()">🖨 列印</button>
+    <button class="btn btn-print"  onclick="window.print()">🖨 列印</button>
   </div>
 </div>
 
-<!-- Date Bar -->
 <div class="datebar">
   <div style="display:flex;align-items:center;gap:6px;">
     <label>📋 歷史會議：</label>
@@ -205,23 +210,16 @@
   <span id="dateBadge" class="date-badge" style="display:none"></span>
 </div>
 
-<!-- Range Result Bar -->
 <div class="range-bar" id="rangeBar">
   <label>查詢結果：</label>
   <div id="rangeBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
 </div>
 
-<!-- Stat Strip -->
 <div class="statstrip" id="statstrip"></div>
 
-<!-- Filter Toolbar -->
 <div class="toolbar">
   <div class="filter-group"><label>類別：</label>
-    <select id="f-cat" onchange="applyFilter()">
-      <option value="">全部</option>
-      <option>假設工程</option><option>室內裝修</option><option>外牆</option>
-      <option>景觀</option><option>地下室</option><option>機電</option><option>外單位檢查</option>
-    </select>
+    <select id="f-cat" onchange="applyFilter()"><option value="">全部</option></select>
   </div>
   <div class="filter-group"><label>狀態：</label>
     <select id="f-status" onchange="applyFilter()">
@@ -241,84 +239,48 @@
   <button class="btn-clear" onclick="resetFilter()">清除</button>
 </div>
 
-<div class="wrap" id="mainWrap"></div>
+<div class="wrap" id="mainWrap">
+  <div style="text-align:center;padding:60px;color:#94a3b8;font-size:14px;">
+    ⏳ 正在從 Google Sheets 載入工項資料...
+  </div>
+</div>
 
 <div id="overlay"><div class="spin"></div><div class="overlay-msg" id="overlayMsg">載入中...</div></div>
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-// ★ API（已綁定）
-// ══════════════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycbwjwsbt9stBqeCtOL8kxGq_PWjY-4ncZl8UbxuqgoxVCEG_BJfWKqMrado2u-r5G_yS/exec';
 
-// ══════════════════════════════════════════════════
-// 工項定義
-// ══════════════════════════════════════════════════
-const CATS = [
-  { name:'假設工程', color:'#1e3a8a', items:[
-    {item:'施工架',bldg:'東'},{item:'施工架',bldg:'西'},
-    {item:'施工架',bldg:'南'},{item:'施工架',bldg:'北'},
-    {item:'施工電梯',bldg:'全棟'},{item:'塔吊',bldg:'全棟'},
-  ]},
-  { name:'室內裝修', color:'#4c1d95', items:[
-    {item:'輕隔間',bldg:'東'},{item:'輕隔間',bldg:'西'},
-    {item:'輕隔間',bldg:'南'},{item:'輕隔間',bldg:'北'},
-    {item:'油漆',bldg:'東'},{item:'油漆',bldg:'西'},
-    {item:'油漆',bldg:'南'},{item:'油漆',bldg:'北'},
-    {item:'戶內地磚+壁磚',bldg:'全棟'},{item:'走廊+陽台地磚',bldg:'全棟'},
-    {item:'戶內暗架天花板',bldg:'全棟'},{item:'1F/2F戶內天花板',bldg:'全棟'},
-    {item:'走廊造型天花板',bldg:'全棟'},{item:'廚具',bldg:'全棟'},{item:'衛浴設備',bldg:'全棟'},
-  ]},
-  { name:'外牆', color:'#1e4e79', items:[
-    {item:'格柵',bldg:'東'},{item:'格柵',bldg:'西'},
-    {item:'格柵',bldg:'南'},{item:'格柵',bldg:'北'},
-    {item:'石材',bldg:'全棟'},{item:'塗料',bldg:'東'},
-    {item:'塗料',bldg:'西'},{item:'塗料',bldg:'南'},{item:'塗料',bldg:'北'},
-    {item:'太陽能板R1F',bldg:'全棟'},{item:'太陽能板R2F',bldg:'全棟'},{item:'屋頂防水',bldg:'全棟'},
-  ]},
-  { name:'景觀', color:'#14532d', items:[
-    {item:'1F景觀防水',bldg:'全棟'},{item:'2F景觀防水',bldg:'全棟'},{item:'3F景觀防水',bldg:'全棟'},
-    {item:'屋頂景觀花台',bldg:'全棟'},{item:'3F景觀花台',bldg:'全棟'},
-    {item:'2F景觀花台',bldg:'全棟'},{item:'1F景觀花台',bldg:'全棟'},
-    {item:'屋頂景觀鋪面',bldg:'全棟'},{item:'3F景觀鋪面',bldg:'全棟'},
-    {item:'2F景觀鋪面',bldg:'全棟'},{item:'1F景觀鋪面',bldg:'全棟'},
-    {item:'屋頂植栽',bldg:'全棟'},{item:'3F植栽',bldg:'全棟'},
-    {item:'2F植栽',bldg:'全棟'},{item:'1F植栽',bldg:'全棟'},
-  ]},
-  { name:'地下室', color:'#451a03', items:[
-    {item:'EPOXY(含標線)B2',bldg:'全棟'},{item:'EPOXY(含標線)B1',bldg:'全棟'},
-  ]},
-  { name:'機電', color:'#422006', items:[
-    {item:'給水(戶內)',bldg:'全棟'},{item:'給水(戶外)',bldg:'全棟'},{item:'排水',bldg:'全棟'},
-    {item:'消防',bldg:'全棟'},{item:'電力',bldg:'全棟'},{item:'弱電監控',bldg:'全棟'},
-    {item:'空調冷氣',bldg:'全棟'},{item:'電梯使照取得',bldg:'全棟'},
-  ]},
-  { name:'外單位檢查', color:'#7f1d1d', items:[
-    {item:'消防檢查',bldg:'—'},{item:'電信檢查',bldg:'—'},{item:'雨汙水檢查',bldg:'—'},
-    {item:'無障礙勘驗',bldg:'—'},{item:'使照申請',bldg:'—'},
-    {item:'用電申請',bldg:'—'},{item:'用水申請',bldg:'—'},{item:'完工',bldg:'—'},
-  ]},
-];
-
+let CATS  = [];
 let STATE = {};
 let META  = {};
+
+const CAT_COLORS = [
+  '#1e3a8a','#4c1d95','#1e4e79','#14532d',
+  '#451a03','#422006','#7f1d1d','#0f4c75',
+  '#1a1a2e','#2d6a4f'
+];
 
 const SK = (ci,ii) => `${ci}_${ii}`;
 const SL = ['已完成','進行中','待施工','延遲','待申請'];
 const SC = {'已完成':'b-done','進行中':'b-ing','待施工':'b-wait','延遲':'b-delay','待申請':'b-apply'};
 const pc = p => p===100?'#15803d':p>=70?'#1d4ed8':p>=40?'#d97706':'#dc2626';
 
+// ★ 新增 planStart / actualStart 預設值
 function gv(ci,ii,k){
   const s=STATE[SK(ci,ii)]; if(s&&s[k]!==undefined)return s[k];
   const m=META[SK(ci,ii)];  if(m&&m[k]!==undefined)return m[k];
-  const def={pct:0,actualMP:0,tomorrowMP:0,diff:'',todayWork:'',tomorrowWork:'',
-             issue:'',abnormal:'',note:'',actualEnd:'',status:'進行中',planEnd:''};
+  const def={
+    pct:0, actualMP:0, tomorrowMP:0,
+    diff:'', todayWork:'', tomorrowWork:'',
+    issue:'', abnormal:'', note:'',
+    planStart:'', actualStart:'',   // ★ 新增
+    actualEnd:'', status:'進行中', planEnd:''
+  };
   return def[k]??'';
 }
 function sv(ci,ii,k,v){if(!STATE[SK(ci,ii)])STATE[SK(ci,ii)]={};STATE[SK(ci,ii)][k]=v;}
 
-// ── UI Helpers ──
 function loading(msg='處理中...'){
   document.getElementById('overlayMsg').textContent=msg;
   document.getElementById('overlay').classList.add('on');
@@ -339,48 +301,86 @@ function badge(txt){
   else el.style.display='none';
 }
 
-// ── Fetch ──
 async function GET(p){ const r=await fetch(API+'?'+new URLSearchParams(p)); return r.json(); }
 async function POST(b){ const r=await fetch(API,{method:'POST',body:JSON.stringify(b)}); return r.json(); }
 
 // ══════════════════════════════════════════════════
-// 初始化試算表
+// 動態載入工項
 // ══════════════════════════════════════════════════
+async function loadMeta(){
+  try{
+    const r=await GET({action:'getItems'});
+    if(!r.ok||!r.items||r.items.length===0)return false;
+    const catMap=new Map();
+    r.items.forEach(it=>{
+      const ci=Number(it.catIndex);
+      if(!catMap.has(ci)) catMap.set(ci,{name:it.catName,color:CAT_COLORS[ci%CAT_COLORS.length],items:[]});
+      catMap.get(ci).items[Number(it.itemIndex)]={item:it.item,bldg:it.bldg};
+    });
+    CATS=[];
+    const maxCi=Math.max(...catMap.keys());
+    for(let ci=0;ci<=maxCi;ci++){
+      if(catMap.has(ci)){
+        const cat=catMap.get(ci);
+        cat.items=cat.items.filter(Boolean);
+        CATS.push(cat);
+      }
+    }
+    META={};
+    r.items.forEach(it=>{
+      const ci=Number(it.catIndex), ii=Number(it.itemIndex);
+      META[SK(ci,ii)]={
+        planEnd:String(it.planEnd||''),
+        status: it.defaultStatus||'進行中',
+        note:   it.note||''
+      };
+    });
+    _refreshCatFilter();
+    return true;
+  }catch(e){console.error(e);return false;}
+}
+
+function _refreshCatFilter(){
+  const sel=document.getElementById('f-cat');
+  sel.innerHTML='<option value="">全部</option>';
+  CATS.forEach(cat=>{
+    const o=document.createElement('option');
+    o.value=cat.name; o.textContent=cat.name;
+    sel.appendChild(o);
+  });
+}
+
+async function doReloadItems(){
+  sync('syncing','載入工項...');
+  loading('從 Google Sheets 重新載入工項主檔...');
+  try{
+    const ok=await loadMeta();
+    unload();
+    if(ok){
+      renderAll();
+      const total=CATS.reduce((s,c)=>s+c.items.length,0);
+      sync('ok',`已載入 ${total} 項`);
+      toast(`✓ 工項已更新（共 ${total} 項）`,'ok');
+    } else {
+      sync('fail','載入失敗');
+      toast('工項載入失敗，請確認已執行「初始化試算表」','err');
+    }
+  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
+}
+
 async function doInit(){
-  loading('初始化 Google Sheets（建立中文工作表）...');
+  loading('初始化 Google Sheets...');
   try{
     const r=await GET({action:'initSheets'});
     unload();
     if(r.ok){
       toast('✓ '+r.msg,'ok');
-      await Promise.all([loadMeta(), refreshPicker()]);
+      await Promise.all([loadMeta(),refreshPicker()]);
       renderAll();
     } else toast('錯誤：'+(r.error||r.msg),'err');
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
-// ══════════════════════════════════════════════════
-// 載入工項主檔（META）
-// ══════════════════════════════════════════════════
-async function loadMeta(){
-  try{
-    const r=await GET({action:'getItems'});
-    if(r.ok && r.items){
-      META={};
-      r.items.forEach(it=>{
-        META[SK(it.catIndex,it.itemIndex)]={
-          planEnd: String(it.planEnd||''),
-          status:  it.defaultStatus||'進行中',
-          note:    it.note||''
-        };
-      });
-    }
-  }catch(e){}
-}
-
-// ══════════════════════════════════════════════════
-// 歷史會議下拉
-// ══════════════════════════════════════════════════
 async function refreshPicker(){
   try{
     const r=await GET({action:'getMeetings'});
@@ -403,128 +403,83 @@ async function onPick(){
   await loadDate(d);
 }
 
-// ══════════════════════════════════════════════════
-// ★ 日期範圍查詢
-// ══════════════════════════════════════════════════
 async function doRange(){
   const from=document.getElementById('dateFrom').value;
-  const to  =document.getElementById('dateTo').value;
+  const to=document.getElementById('dateTo').value;
   if(!from||!to){toast('請選擇日期範圍','err');return;}
   loading(`查詢 ${from} ～ ${to}...`);
   try{
     const r=await GET({action:'getRecords',dateFrom:from,dateTo:to});
     unload();
     if(!r.ok){toast('查詢失敗：'+(r.error||''),'err');return;}
-
     const dates=[...new Set((r.records||[]).map(x=>x.mtgDate))].filter(Boolean).sort();
     const bar=document.getElementById('rangeBar');
     const btns=document.getElementById('rangeBtns');
-
-    if(dates.length===0){
-      bar.classList.remove('show');
-      badge('此區間無資料');
-      toast('此日期範圍無資料','err');
-      return;
-    }
-
-    // 建立日期按鈕
+    if(dates.length===0){bar.classList.remove('show');badge('此區間無資料');toast('此日期範圍無資料','err');return;}
     bar.classList.add('show');
     btns.innerHTML='';
     dates.forEach(d=>{
       const btn=document.createElement('button');
-      btn.className='rdate-btn';
-      btn.textContent=d;
-      btn.onclick=async ()=>{
+      btn.className='rdate-btn'; btn.textContent=d;
+      btn.onclick=async()=>{
         document.querySelectorAll('.rdate-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('mtgDate').value=d;
         applyRecords((r.records||[]).filter(x=>x.mtgDate===d));
         badge(`已載入：${d}`);
-        // 同步會議基本資料
         const mr=await GET({action:'getMeetings'});
-        if(mr.ok){
-          const m=(mr.meetings||[]).find(x=>x.mtgDate===d);
-          if(m){
-            document.getElementById('mtgWeek').value=m.mtgWeek||'';
-            document.getElementById('mtgHost').value=m.mtgHost||'';
-            document.getElementById('mtgRec').value =m.mtgRec ||'';
-          }
-        }
+        if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===d);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
       };
       btns.appendChild(btn);
     });
-
-    // 自動載入最新一筆
     btns.lastChild.classList.add('active');
     const latest=dates[dates.length-1];
     document.getElementById('mtgDate').value=latest;
     applyRecords((r.records||[]).filter(x=>x.mtgDate===latest));
     badge(`共 ${dates.length} 筆會議，已載入最新：${latest}`);
     toast(`找到 ${dates.length} 筆會議，已載入最新一筆`,'ok');
-
-    // 載入最新會議基本資料
     const mr=await GET({action:'getMeetings'});
-    if(mr.ok){
-      const m=(mr.meetings||[]).find(x=>x.mtgDate===latest);
-      if(m){
-        document.getElementById('mtgWeek').value=m.mtgWeek||'';
-        document.getElementById('mtgHost').value=m.mtgHost||'';
-        document.getElementById('mtgRec').value =m.mtgRec ||'';
-      }
-    }
+    if(mr.ok){const m=(mr.meetings||[]).find(x=>x.mtgDate===latest);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
-// ══════════════════════════════════════════════════
-// 載入指定日期
-// ══════════════════════════════════════════════════
 async function loadDate(date){
   loading(`載入 ${date} 資料...`);
   try{
-    const [recR,mtgR]=await Promise.all([
-      GET({action:'getRecords',date}),
-      GET({action:'getMeetings'}),
-    ]);
+    const [recR,mtgR]=await Promise.all([GET({action:'getRecords',date}),GET({action:'getMeetings'})]);
     unload();
     if(!recR.ok){toast('載入失敗：'+(recR.error||''),'err');return;}
     applyRecords(recR.records||[]);
-    if(mtgR.ok){
-      const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date);
-      if(m){
-        document.getElementById('mtgWeek').value=m.mtgWeek||'';
-        document.getElementById('mtgHost').value=m.mtgHost||'';
-        document.getElementById('mtgRec').value =m.mtgRec ||'';
-      }
-    }
+    if(mtgR.ok){const m=(mtgR.meetings||[]).find(x=>x.mtgDate===date);if(m){document.getElementById('mtgWeek').value=m.mtgWeek||'';document.getElementById('mtgHost').value=m.mtgHost||'';document.getElementById('mtgRec').value=m.mtgRec||'';}}
     badge(`已載入：${date}（${(recR.records||[]).length} 筆）`);
     toast(`${date} 資料已載入`,'ok');
   }catch(e){unload();toast('連線失敗：'+e.message,'err');}
 }
 
+// ★ applyRecords 新增 planStart / actualStart
 function applyRecords(records){
   STATE={};
   (records||[]).forEach(r=>{
     STATE[SK(r.catIndex,r.itemIndex)]={
-      status:      r.status||'進行中',
-      planEnd:     String(r.planEnd||''),
-      actualEnd:   String(r.actualEnd||''),
-      pct:         +r.pct||0,
-      actualMP:    +r.actualMP||0,
-      tomorrowMP:  +r.tomorrowMP||0,
-      diff:        r.diff||'',
-      todayWork:   r.todayWork||'',
-      tomorrowWork:r.tomorrowWork||'',
-      issue:       r.issue||'',
-      abnormal:    r.abnormal||'',
-      note:        r.note||'',
+      status:       r.status||'進行中',
+      planStart:    String(r.planStart||''),    // ★
+      actualStart:  String(r.actualStart||''),  // ★
+      planEnd:      String(r.planEnd||''),
+      actualEnd:    String(r.actualEnd||''),
+      pct:          +r.pct||0,
+      actualMP:     +r.actualMP||0,
+      tomorrowMP:   +r.tomorrowMP||0,
+      diff:         r.diff||'',
+      todayWork:    r.todayWork||'',
+      tomorrowWork: r.tomorrowWork||'',
+      issue:        r.issue||'',
+      abnormal:     r.abnormal||'',
+      note:         r.note||'',
     };
   });
   renderAll();
 }
 
-// ══════════════════════════════════════════════════
-// 新會議
-// ══════════════════════════════════════════════════
 function doNew(){
   if(!confirm('開新會議將清空目前畫面（未儲存資料將遺失），確定？'))return;
   STATE={};
@@ -539,25 +494,18 @@ function doNew(){
   toast('已開新會議，請填寫後儲存','ok');
 }
 
-// ══════════════════════════════════════════════════
-// ★ 儲存至 Google Sheets
-// ══════════════════════════════════════════════════
+// ★ doSave 新增 planStart / actualStart
 async function doSave(){
   const mtgDate=document.getElementById('mtgDate').value;
   if(!mtgDate){toast('請選擇會議日期','err');return;}
   sync('syncing','儲存中...');
   loading('儲存至 Google Sheets...');
   try{
-    // 1. 儲存會議基本資料
-    await POST({
-      action:'saveMeeting',
-      mtgDate,
+    await POST({action:'saveMeeting',mtgDate,
       mtgWeek:document.getElementById('mtgWeek').value,
       mtgHost:document.getElementById('mtgHost').value,
       mtgRec: document.getElementById('mtgRec').value,
     });
-
-    // 2. 批次儲存所有工項
     const records=[];
     CATS.forEach((cat,ci)=>{
       cat.items.forEach((_,ii)=>{
@@ -565,6 +513,8 @@ async function doSave(){
           catIndex:    ci,
           itemIndex:   ii,
           status:      gv(ci,ii,'status'),
+          planStart:   gv(ci,ii,'planStart'),    // ★
+          actualStart: gv(ci,ii,'actualStart'),  // ★
           planEnd:     gv(ci,ii,'planEnd'),
           actualEnd:   gv(ci,ii,'actualEnd'),
           pct:         gv(ci,ii,'pct'),
@@ -579,27 +529,27 @@ async function doSave(){
         });
       });
     });
-
     const r=await POST({action:'saveBatch',mtgDate,records});
     unload();
     if(r.ok){
       sync('ok',`已儲存 ${r.total} 筆`);
       toast(`✓ 儲存成功（更新 ${r.updated} / 新增 ${r.inserted}）`,'ok');
       await refreshPicker();
-    } else {
-      sync('fail','儲存失敗');
-      toast('儲存失敗：'+(r.error||''),'err');
-    }
-  }catch(e){
-    unload(); sync('fail','連線失敗');
-    toast('連線失敗：'+e.message,'err');
-  }
+    } else {sync('fail','儲存失敗');toast('儲存失敗：'+(r.error||''),'err');}
+  }catch(e){unload();sync('fail','連線失敗');toast('連線失敗：'+e.message,'err');}
 }
 
 // ══════════════════════════════════════════════════
 // 渲染
 // ══════════════════════════════════════════════════
 function renderAll(){
+  if(CATS.length===0){
+    document.getElementById('mainWrap').innerHTML=`
+      <div style="text-align:center;padding:60px;color:#94a3b8;font-size:14px;">
+        ⚠️ 尚未載入工項資料，請按「🔄 重新載入工項」或「🗄 初始化試算表」
+      </div>`;
+    updateStats(); return;
+  }
   const wrap=document.getElementById('mainWrap');
   wrap.innerHTML='';
   CATS.forEach((cat,ci)=>{
@@ -619,8 +569,8 @@ function renderAll(){
           <table>
             <thead>
               <tr class="th-grp">
-                <th colspan="4">基本資訊</th>
-                <th colspan="2">時程</th>
+                <th colspan="3">基本資訊</th>
+                <th class="th-schedule" colspan="5">時程</th>
                 <th colspan="2">進度</th>
                 <th colspan="3" style="border-left:2px solid #d1d5db">人力管制</th>
                 <th colspan="4" style="border-left:2px solid #d1d5db">會議紀錄</th>
@@ -631,8 +581,10 @@ function renderAll(){
                 <th class="left c-item">工項名稱</th>
                 <th class="c-bldg">棟別</th>
                 <th class="c-status">狀態</th>
-                <th class="c-date">預計完成</th>
-                <th class="c-date">實際完成</th>
+                <th class="th-schedule c-date">預定開始</th>
+                <th class="th-schedule c-date">實際開始</th>
+                <th class="th-schedule c-date">預計完成</th>
+                <th class="th-schedule c-date">實際完成</th>
                 <th class="c-pct">完成率</th>
                 <th class="c-date" style="width:52px">落後</th>
                 <th class="c-mp" style="border-left:2px solid #d1d5db">本日<br>出工數</th>
@@ -657,24 +609,27 @@ function renderAll(){
 
 function renderTbody(ci){
   const tbody=document.getElementById(`tb_${ci}`);
+  if(!tbody)return;
   tbody.innerHTML='';
   CATS[ci].items.forEach((row,ii)=>{
-    const pct        =+gv(ci,ii,'pct')||0;
-    const status     =gv(ci,ii,'status')||'進行中';
-    const actualMP   =+gv(ci,ii,'actualMP')||0;
-    const tomorrowMP =+gv(ci,ii,'tomorrowMP')||0;
-    const diff       =gv(ci,ii,'diff')||'';
-    const todayWork  =gv(ci,ii,'todayWork')||'';
+    const pct         =+gv(ci,ii,'pct')||0;
+    const status      =gv(ci,ii,'status')||'進行中';
+    const planStart   =gv(ci,ii,'planStart')||'';    // ★
+    const actualStart =gv(ci,ii,'actualStart')||'';  // ★
+    const planEnd     =gv(ci,ii,'planEnd')||'';
+    const aEnd        =gv(ci,ii,'actualEnd')||'';
+    const actualMP    =+gv(ci,ii,'actualMP')||0;
+    const tomorrowMP  =+gv(ci,ii,'tomorrowMP')||0;
+    const diff        =gv(ci,ii,'diff')||'';
+    const todayWork   =gv(ci,ii,'todayWork')||'';
     const tomorrowWork=gv(ci,ii,'tomorrowWork')||'';
-    const iss        =gv(ci,ii,'issue')||'';
-    const abnormal   =gv(ci,ii,'abnormal')||'';
-    const note       =gv(ci,ii,'note')||'';
-    const aEnd       =gv(ci,ii,'actualEnd')||'';
-    const planEnd    =gv(ci,ii,'planEnd')||'';
-    const metaPE     =(META[SK(ci,ii)]||{}).planEnd||'';
-    const isModified =planEnd&&planEnd!==metaPE;
-    const isDelay    =status==='延遲';
-    const isDone     =status==='已完成';
+    const iss         =gv(ci,ii,'issue')||'';
+    const abnormal    =gv(ci,ii,'abnormal')||'';
+    const note        =gv(ci,ii,'note')||'';
+    const metaPE      =(META[SK(ci,ii)]||{}).planEnd||'';
+    const isModified  =planEnd&&planEnd!==metaPE;
+    const isDelay     =status==='延遲';
+    const isDone      =status==='已完成';
 
     const tr=document.createElement('tr');
     if(isDelay)tr.className='row-delay';
@@ -694,17 +649,40 @@ function renderTbody(ci){
       <td class="c-status">
         <span class="badge ${SC[status]||'b-ing'}" onclick="cycleStatus(${ci},${ii},this)">${status}</span>
       </td>
-      <td class="c-date">
+
+      <!-- ★ 預定開始 -->
+      <td class="c-date td-schedule">
+        <input class="date-in" type="text" value="${planStart}"
+          placeholder="MM/DD"
+          title="預定開始日期"
+          onblur="sv(${ci},${ii},'planStart',this.value.trim())"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+
+      <!-- ★ 實際開始 -->
+      <td class="c-date td-schedule">
+        <input class="date-in${actualStart?' has-val':''}" type="text" value="${actualStart}"
+          placeholder="MM/DD"
+          title="實際開始日期"
+          onblur="updateActualStart(${ci},${ii},this.value,this)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+
+      <!-- 預計完成 -->
+      <td class="c-date td-schedule">
         <input class="date-in${isModified?' modified':''}" type="text" value="${planEnd}"
-          title="可直接修改預計完成日期"
+          title="預計完成日期"
           onblur="updatePlanEnd(${ci},${ii},this.value,this)"
           onkeydown="if(event.key==='Enter')this.blur()">
       </td>
-      <td class="c-date">
+
+      <!-- 實際完成 -->
+      <td class="c-date td-schedule">
         <div class="ed" contenteditable="true"
           onblur="sv(${ci},${ii},'actualEnd',this.innerText.trim());updateStats();"
         >${aEnd}</div>
       </td>
+
       <td class="c-pct">
         <div class="pct-wrap">
           <div class="pct-bar">
@@ -752,6 +730,13 @@ function renderTbody(ci){
   updSecPct(ci);
 }
 
+// ★ 實際開始：有值時加綠色樣式
+function updateActualStart(ci,ii,val,el){
+  const v=val.trim();
+  sv(ci,ii,'actualStart',v);
+  el.classList.toggle('has-val',!!v);
+}
+
 function updPct(ci,ii,val){
   const v=Math.min(100,Math.max(0,+val||0));
   sv(ci,ii,'pct',v);
@@ -780,7 +765,8 @@ function cycleStatus(ci,ii,el){
 }
 
 function updSecPct(ci){
-  const items=CATS[ci].items;
+  const items=CATS[ci]?CATS[ci].items:[];
+  if(!items.length)return;
   const avg=Math.round(items.reduce((s,_,ii)=>s+(+gv(ci,ii,'pct')||0),0)/items.length);
   const el=document.getElementById(`sp_${ci}`);
   if(el)el.textContent=avg+'%';
@@ -846,12 +832,18 @@ function resetFilter(){
   applyFilter();
 }
 
+// ★ exportCSV 新增兩欄
 function exportCSV(){
-  const rows=[['類別','工項','棟別','狀態','預計完成','實際完成','完成率%',
-               '本日出工','明日預計出工','差異','本日施工','明日工作','延遲原因','異常說明','備註']];
+  const rows=[['類別','工項','棟別','狀態',
+               '預定開始','實際開始','預計完成','實際完成',   // ★
+               '完成率%','本日出工','明日預計出工','差異',
+               '本日施工','明日工作','延遲原因','異常說明','備註']];
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
     rows.push([cat.name,CATS[ci].items[ii].item,CATS[ci].items[ii].bldg,
-      gv(ci,ii,'status'),gv(ci,ii,'planEnd'),gv(ci,ii,'actualEnd'),gv(ci,ii,'pct'),
+      gv(ci,ii,'status'),
+      gv(ci,ii,'planStart'), gv(ci,ii,'actualStart'),  // ★
+      gv(ci,ii,'planEnd'),   gv(ci,ii,'actualEnd'),
+      gv(ci,ii,'pct'),
       gv(ci,ii,'actualMP'),gv(ci,ii,'tomorrowMP'),gv(ci,ii,'diff'),
       gv(ci,ii,'todayWork'),gv(ci,ii,'tomorrowWork'),
       gv(ci,ii,'issue'),gv(ci,ii,'abnormal'),gv(ci,ii,'note')]);
@@ -864,12 +856,16 @@ function exportCSV(){
   toast('CSV 已匯出','ok');
 }
 
-// ══════════════════════════════════════════════════
-// 啟動
-// ══════════════════════════════════════════════════
 (async()=>{
-  renderAll();
-  await Promise.all([loadMeta(), refreshPicker()]);
+  sync('syncing','載入工項...');
+  const ok=await loadMeta();
+  if(ok){
+    const total=CATS.reduce((s,c)=>s+c.items.length,0);
+    sync('ok',`已載入 ${total} 項`);
+  } else {
+    sync('fail','工項載入失敗');
+  }
+  await refreshPicker();
   renderAll();
 })();
 </script>
